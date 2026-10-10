@@ -174,8 +174,8 @@ function checkZap(order) {
   const code = order.join(" ");
   if (order.length < 5) {
     return {
-      msg: `Hero.java:12: error: incomplete method declaration\n    ${code}`,
-      why: "A method needs all five parts: modifier, return type, name, (parameters), { body }.",
+      msg: `🗿 The stone rejects it: only ${order.length} of 5 parts\n    ${code}`,
+      why: "This spell needs all five parts: modifier, return type, name, (parameters), { body }. (In real Java the modifier is optional, but the return type, name, ( ) and { } are always required.)",
     };
   }
   if (order.includes("void")) {
@@ -195,7 +195,7 @@ function checkZap(order) {
     if (order[i] !== ZAP_ORDER[i]) {
       return {
         msg: `Hero.java:12: error: <identifier> expected\n    ${code}\n    ^`,
-        why: `Slot ${i + 1} should be ${names[i]}. Java reads a method in this exact order: modifier → return type → name → (parameters) → { body }.`,
+        why: `Slot ${i + 1} should be ${names[i]}. Java expects a method in this order: modifier(s) → return type → name → (parameters) → { body }.`,
       };
     }
   }
@@ -736,7 +736,7 @@ async function orrin(api) {
   }
   if (!s.flags.orrinDone) {
     await api.say(who, "Lantern.lightAll() — called on the class, no object needed. Like Math.max(3, 9). Nobody ever writes 'new Math()'.");
-    await api.say(who, "And your program's main method? It's static too. When Java starts, no objects exist yet — so main must belong to the class.", "public static void main(String[] args)");
+    await api.say(who, "And your program's main method? The classic one is static too. When Java starts, no objects exist yet, so main belongs to the class.\n\n(Very new Java also allows a simpler main without static, but this is the standard form, and the one on the exam.)", "public static void main(String[] args)");
     await api.say(who, "Now. Nobody climbs my Spire without passing my trial.");
     await trial(api, who, "static", STATIC_TRIAL);
     api.scroll("static");
@@ -775,7 +775,7 @@ const STATIC_TRIAL = [
     prompt: "Why is  main  declared static?",
     code: "public static void main(String[] args)",
     options: ["So Java can run it before any object exists", "So it can return a value", "So other classes can't call it", "It makes the program faster"],
-    why: "When your program starts, there are no objects yet. A static main belongs to the class, so Java can call it immediately.",
+    why: "When your program starts, there are no objects yet. A static main belongs to the class, so Java can call it immediately. (Java 25+ also allows an instance main, but the classic static form is the standard.)",
   },
 ];
 

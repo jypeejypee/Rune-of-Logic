@@ -12,7 +12,7 @@ export const LESSONS = {
     pages: [
       { text: "A METHOD is a named block of code that does one job.\n\nYou write it ONCE, then CALL it as many times as you want.",
         code: "public int add(int a, int b) {\n    return a + b;\n}" },
-      { text: "The five parts, always in this order:\n\npublic        → access modifier (who may call it)\nint           → return type (what it gives back)\nadd           → the name\n(int a, int b) → parameters (its inputs)\n{ ... }       → the body (the instructions)" },
+      { text: "The parts, always in this order:\n\npublic        → modifier(s) (who may call it)\nint           → return type (what it gives back)\nadd           → the name\n(int a, int b) → parameters (its inputs)\n{ ... }       → the body (the instructions)\n\nModifiers are optional, and there can be more than one (public static). The return type, name, ( ) and { } are always required." },
     ],
   },
   m2: {
@@ -41,7 +41,7 @@ export const LESSONS = {
   // ---------------------------------------------------------- PARAMETERS
   p1: {
     title: "Parameters vs Arguments",
-    area: "Parameter Plains",
+    area: "Method Village",
     pages: [
       { text: "PARAMETERS are the input slots in a method's definition.\nARGUMENTS are the real values you pass in when you call it.",
         code: "static int square(int n) {   // n = PARAMETER\n    return n * n;\n}\n\nsquare(7);                   // 7 = ARGUMENT" },
@@ -50,7 +50,7 @@ export const LESSONS = {
   },
   p2: {
     title: "Type & order matter",
-    area: "Parameter Plains",
+    area: "Method Village",
     pages: [
       { text: "Arguments must match the parameters in NUMBER, TYPE and ORDER.",
         code: "static void open(int code, String word)\n\nopen(7, \"oak\");      // ✔ int, then String\nopen(\"oak\", 7);      // ✘ wrong order\nopen(3.14, \"oak\");   // ✘ a double is not an int\nopen(7);             // ✘ missing an argument" },
@@ -60,7 +60,7 @@ export const LESSONS = {
   },
   p3: {
     title: "Pass-by-value",
-    area: "Parameter Plains",
+    area: "Method Village",
     pages: [
       { text: "Java ALWAYS passes a COPY of the value.\nChanging the parameter does NOT change the caller's variable.",
         code: "static void doubleIt(int x) {\n    x = x * 2;          // changes the copy only\n}\n\nint coins = 5;\ndoubleIt(coins);\n// coins is still 5" },
@@ -96,7 +96,7 @@ export const LESSONS = {
     pages: [
       { text: "A static method has no object of its own, so it CAN'T use instance fields or instance methods directly.",
         code: "static void lightAll() {\n    lit = true;   // ✘ error: non-static variable lit\n}                 //   cannot be referenced from a static context" },
-      { text: "That's why main is static: it runs before ANY object exists.\nInside main, you create objects with 'new' and call their methods.",
+      { text: "That's why the classic main is static: Java can call it before ANY object exists.\nInside main, you create objects with 'new' and call their methods.\n\n(Java 25+ also accepts a simpler  void main()  without static, but the static form is the standard one, and the one on the Java 8 exam.)",
         code: "public static void main(String[] args) {\n    Lantern b = new Lantern();\n    b.light();\n}" },
     ],
   },
@@ -195,7 +195,7 @@ export const LESSONS = {
         code: "public Forge(int heat) {\n    setHeat(heat);      // reuse the setter's guard\n}" },
       { text: "Java gives you a free no-argument constructor ONLY if you write no constructors at all. Write one, and the free one disappears:",
         code: "public class Forge {\n    public Forge(int heat) { ... }\n}\n\nnew Forge();     // ✘ compilation fails" },
-      { text: "this(...) calls another constructor of the same class. In Java 8 it must be the FIRST line:",
+      { text: "this(...) calls another constructor of the same class. In Java 8 (and on the exam) it must be the FIRST line. Java 25+ relaxes this a little, but putting it first is still the normal style:",
         code: "public Forge() {\n    this(800);          // default heat\n}" },
     ],
   },
@@ -213,7 +213,7 @@ export const LESSONS = {
     title: "Secret lesson — Immutable classes",
     area: "The Private Wilds (hidden island)",
     pages: [
-      { text: "The strongest encapsulation: an object that can NEVER change after it's built.\n\n1. Make the class final (no sneaky subclasses)\n2. Make every field private final\n3. Set fields only in the constructor\n4. Write NO setters",
+      { text: "The strongest encapsulation: an object that can NEVER change after it's built.\n\n1. Make the class final (no sneaky subclasses)\n2. Make every field private final\n3. Set fields only in the constructor\n4. Write NO setters\n5. If a field holds a mutable object (like a List), store and return COPIES of it",
         code: "public final class Rune {\n    private final String name;\n    public Rune(String name) { this.name = name; }\n    public String getName()  { return name; }\n}" },
       { text: "String is immutable. That's why s.toUpperCase() returns a NEW String and leaves s unchanged, a favourite exam trick.",
         code: "String s = \"java\";\ns.toUpperCase();\nSystem.out.println(s);   // java" },

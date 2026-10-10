@@ -37,7 +37,9 @@ class Hero {
     // TODO 1: change zap so it returns power * 3. Run again. What printed?
 
     // TODO 2: try changing 'int' to 'void' on zap and run it.
-    //         Read the error. It's the same one the Compiler Stone showed you!
+    //         You'll get TWO errors. 'unexpected return value' is the one the
+    //         Compiler Stone showed you. The other is in main: a void method
+    //         gives nothing back, so there's nothing to store in 'damage'.
     //         (Then change it back.)
 
     // TODO 3: write a method called heal that:

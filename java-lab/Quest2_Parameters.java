@@ -1,5 +1,5 @@
 // =====================================================================
-//  QUEST 2 — PARAMETER PLAINS: Brannoc's forge, for real
+//  QUEST 2 — PARAMETERS: Old Tamsin's lessons, for real
 //
 //  Run it:   java Quest2_Parameters.java
 //
@@ -21,7 +21,7 @@ public class Quest2_Parameters {
         bag.add("gem");
     }
 
-    // Two parameters: the order and types matter, just like the gate.
+    // Two parameters: the order and types matter, just like on the notice board.
     static void open(int code, String word) {
         System.out.println("Gate opened with " + code + " and " + word);
     }

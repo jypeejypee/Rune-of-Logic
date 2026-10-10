@@ -32,7 +32,7 @@ export const SCROLLS = {
       "Call instance methods on an object: b.light();",
       "Call static methods on the class:   Lantern.lightAll();  Math.max(3, 9);",
       "A static method can't use instance fields directly — it has no object to look at.",
-      "main is static so Java can run it before any object exists.",
+      "Classic main is static so Java can call it before any object exists (the exam form).",
     ],
   },
   forge: {
@@ -43,7 +43,7 @@ export const SCROLLS = {
       "3. Setter to write:  public void setHeat(int heat) { if (bad) return; this.heat = heat; }",
       "this.heat = the FIELD.  heat = the parameter (it shadows the field).",
       "Write a constructor and the free no-arg one disappears.",
-      "No setters + private final fields = immutable.",
+      "Immutable = final class + private final fields + no setters (and copies of any mutable objects).",
     ],
   },
   encap: {

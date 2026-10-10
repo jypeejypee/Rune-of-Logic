@@ -155,7 +155,7 @@ const statics = [
     prompt: "Which keyword lets main run without creating an object?",
     code: "public ??? void main(String[] args)",
     options: ["static", "final", "private", "new"],
-    why: "When the program starts there are no objects yet, so main must be static: it belongs to the class.",
+    why: "When the program starts there are no objects yet, so the classic main is static: it belongs to the class. (Java 25+ also allows a simpler instance main, but the exam uses the static form.)",
   },
 ];
 
@@ -231,7 +231,7 @@ const encap = [
     prompt: "A class has private final fields and NO setters. What does that make it?",
     code: "public final class Point {\n    private final int x, y;\n    public Point(int x, int y) { this.x = x; this.y = y; }\n    public int getX() { return x; }\n    public int getY() { return y; }\n}",
     options: ["Immutable — its state can't change after construction", "Broken — every field needs a setter", "Static", "Abstract"],
-    why: "No setters + private final fields = immutable. String works exactly like this.",
+    why: "A final class with private final fields and no setters can't change after construction. (If a field held a mutable object like a List, you'd also need to copy it.) String works the same way.",
   },
   {
     prompt: "Where is the BEST place to reject an invalid value for a private field?",
