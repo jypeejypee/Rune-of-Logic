@@ -35,6 +35,17 @@ export const SCROLLS = {
       "main is static so Java can run it before any object exists.",
     ],
   },
+  forge: {
+    title: "The Smith's Code — Encapsulation Basics",
+    lines: [
+      "1. Fields private:   private int heat;",
+      "2. Getter to read:   public int getHeat() { return heat; }",
+      "3. Setter to write:  public void setHeat(int heat) { if (bad) return; this.heat = heat; }",
+      "this.heat = the FIELD.  heat = the parameter (it shadows the field).",
+      "Write a constructor and the free no-arg one disappears.",
+      "No setters + private final fields = immutable.",
+    ],
+  },
   encap: {
     title: "Encapsulation",
     lines: [

@@ -9,8 +9,10 @@ import { EXAM } from "./exam.js";
 // topic = which questions this enemy asks ("all" = everything you've studied)
 export const ENEMIES = {
   bug:    { name: "Bridge Bug",    emoji: "🐛", hp: 8,  atk: 3, exp: 8,  gold: 3, topic: "methods" },
-  beetle: { name: "Syntax Beetle", emoji: "🐞", hp: 10, atk: 3, exp: 10, gold: 3, topic: "methods" },
-  worm:   { name: "Param Worm",    emoji: "🪱", hp: 12, atk: 4, exp: 12, gold: 4, topic: "params" },
+  beetle: { name: "Syntax Beetle", emoji: "🐞", hp: 10, atk: 3, exp: 10, gold: 3, topic: "params" },
+  // `image` = a picture shown in battle (files in /public). `sprite` = how it's drawn on the map.
+  cobra:  { name: "Wilds Cobra",   emoji: "🐍", hp: 15, atk: 5, exp: 14, gold: 5, topic: "encap",
+            image: "/sprites/cobra.png", sprite: "cobra" },
   ghost:  { name: "Null Ghost",    emoji: "👻", hp: 14, atk: 4, exp: 14, gold: 5, topic: "static" },
   slime:  { name: "Leak Slime",    emoji: "🦠", hp: 16, atk: 5, exp: 16, gold: 6, topic: "encap" },
   minion: { name: "Leaky Minion",  emoji: "🪲", hp: 14, atk: 5, exp: 14, gold: 5, topic: "all" },
@@ -24,9 +26,9 @@ export const ITEMS = {
 // Topics you've already studied, so enemies can throw in review questions.
 export function studiedTopics(s) {
   const t = ["methods"];
-  if (s.flags.metBrannoc) t.push("params");
+  if (s.flags.metTamsin) t.push("params"); // parameters are taught in Method Village
   if (s.flags.metOrrin) t.push("static");
-  if (s.flags.metVessa) t.push("encap");
+  if (s.flags.metBrannoc || s.flags.metVessa) t.push("encap");
   return t;
 }
 
@@ -62,7 +64,7 @@ export function pickQuestion(s, topic, usedIds) {
 
 const roll = (n) => Math.floor(Math.random() * (n + 1));
 
-export const attackDamage = (s) => 4 + s.level + roll(2);
+export const attackDamage = (s) => 4 + s.level + (s.atkBonus || 0) + roll(2); // atkBonus: the forged blade
 export const magicPower = (s) => (s.learned.args ? s.power : 1);
 export const magicCost = (s) => magicPower(s) * 2;
 export const magicDamage = (s) => magicPower(s) * 2 * 2 + s.level + roll(1);

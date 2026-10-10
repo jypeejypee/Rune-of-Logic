@@ -1,5 +1,5 @@
 /* ===================================================================
-   The Encapsulated Kingdom — styling
+   Rune of Logic — styling
    Retro RPG feel: dark night sky, pixel canvas, chunky dialogue boxes.
    =================================================================== */
 
@@ -349,3 +349,24 @@ code { font-family: var(--mono); color: var(--blue); }
 }
 .ff-ask .ask-exam { margin-left: 8px; padding: 1px 6px; border-radius: 4px; background: #7a3cc2; color: #fff; font-size: 11px; }
 .ff-ask .ask-objective { font-size: 11px; color: #c9b8ff; margin: -2px 0 6px; font-style: italic; }
+
+/* ---- Private Wilds battle backdrop + image enemies ---- */
+.battle.theme-wilds {
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(0,0,0,.55), transparent 60%),
+    linear-gradient(#0f1f17 0%, #1f3a26 30%, #2f5a32 44.8%, #2a4a22 45%, #1b3016 100%);
+}
+.battle.theme-wilds .battle-scene::before {
+  content: ""; position: absolute; inset: 0 0 55% 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 18% 60% at 8% 100%, #12261a 60%, transparent 61%),
+    radial-gradient(ellipse 14% 70% at 22% 100%, #183020 60%, transparent 61%),
+    radial-gradient(ellipse 20% 55% at 85% 100%, #12261a 60%, transparent 61%),
+    radial-gradient(ellipse 12% 75% at 96% 100%, #183020 60%, transparent 61%);
+}
+.foe-img {
+  font-size: 0; height: 150px; width: auto; object-fit: contain;
+  filter: drop-shadow(0 10px 6px rgba(0,0,0,.55));
+}
+.foe.hurt .foe-img { filter: brightness(2) drop-shadow(0 0 10px #fff); }
+@media (max-width: 600px) { .foe-img { height: 100px; } }

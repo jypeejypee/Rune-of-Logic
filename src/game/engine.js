@@ -6,13 +6,15 @@
 import { MAPS } from "./world.js";
 import { SCROLLS } from "./scrolls.js";
 import { ENEMIES } from "./battle.js";
+import { ADMIN, ADMIN_ORDER } from "./admin.js";
+import { paintSmith, paintCobra, paintForge, paintAnvil, paintRune, paintWildsTile } from "./art.js";
 
 export const TILE = 40;
 export const COLS = 20;
 export const ROWS = 14;
 
 const MOVE_TIME = 0.14; // seconds to walk one tile
-const SOLID = new Set(["T", "~", "W", "H", "r", "R", "B", "D", "o", "g"]);
+const SOLID = new Set(["T", "~", "W", "H", "r", "R", "B", "D", "o", "g", "C"]);
 const DIRS = {
   up: { dx: 0, dy: -1 },
   down: { dx: 0, dy: 1 },
@@ -211,11 +213,37 @@ export class Game {
       this.held.push(dir);
       return;
     }
+    if (e.ctrlKey && e.shiftKey && e.code === "KeyY") {
+      e.preventDefault();
+      if (!e.repeat && !this.paused()) this.adminSkip();
+      return;
+    }
     if (e.repeat || this.paused()) return;
     if (e.code === "KeyJ" || e.code === "Enter") this.interact();
     else if (e.code === "KeyK") this.zap();
     else if (e.code === "KeyL") this.ui.toggleJournal();
     else if (["Digit1", "Digit2", "Digit3"].includes(e.code)) this.setPower(Number(e.code.slice(5)));
+  }
+
+  // ADMIN (Ctrl+Shift+Y): finish this area (and every earlier one), go to the next map.
+  adminSkip() {
+    const index = ADMIN_ORDER.indexOf(this.mapId);
+    if (index < 0) return;
+    for (let k = 0; k <= index; k++) ADMIN[ADMIN_ORDER[k]].complete(this.s);
+    this.s.hp = this.s.maxHp;
+    this.s.mp = this.s.maxMp;
+    this.log(`[ADMIN] ${this.map.name}: all challenges completed`, "ok");
+    const next = ADMIN[this.mapId].next;
+    if (next) {
+      this.loadMap(next.map, next.x, next.y);
+      this.ui.toast(`🛠️ ADMIN: skipped to ${this.map.name}`);
+    } else {
+      this.entities.filter((e) => e.kind === "bug" || e.kind === "shot").forEach((e) => (e.dead = true));
+      this.save();
+      this.changed();
+      this.ui.toast("🛠️ ADMIN: boss defeated");
+      this.ui.victory();
+    }
   }
 
   onKeyUp(e) {
@@ -527,6 +555,7 @@ export class Game {
     const py = y * TILE;
     const theme = this.map.theme;
     const r = this.hash(x, y);
+    if (theme === "wilds" && paintWildsTile(c, ch, x, y, (tx, ty) => this.tile(tx, ty), (a, b) => this.hash(a, b), this.time)) return;
 
     const grass = () => {
       c.fillStyle = theme === "plains" ? "#7aa84a" : "#5a9445";
@@ -824,7 +853,21 @@ export class Game {
       c.fill();
     };
 
+    if (e.sprite === "smith") {
+      paintSmith(c, cx, cy - 2, this.time);
+      return;
+    }
+
     switch (e.kind) {
+      case "forge":
+        paintForge(c, cx, cy, this.time, e.lit(this.s));
+        break;
+      case "anvil":
+        paintAnvil(c, cx, cy);
+        break;
+      case "rune":
+        paintRune(c, cx, cy, this.time, e.solved(this.s));
+        break;
       case "item": {
         const glow = 0.5 + Math.sin(this.time * 4 + e.x) * 0.3;
         c.fillStyle = e.color + Math.round(glow * 120).toString(16).padStart(2, "0");
@@ -928,7 +971,8 @@ export class Game {
           e.flash -= 0.016;
           c.globalAlpha = 0.5;
         }
-        this.emoji(e.emoji, cx + wiggle, cy, 28);
+        if (e.sprite === "cobra") paintCobra(c, cx, cy, this.time + e.x);
+        else this.emoji(e.emoji, cx + wiggle, cy, 28);
         c.globalAlpha = 1;
         break;
       }

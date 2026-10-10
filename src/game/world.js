@@ -1,5 +1,5 @@
 // =====================================================================
-//  THE ENCAPSULATED KINGDOM — the world
+//  RUNE OF LOGIC — the world (Chapter 1: The Encapsulated Kingdom)
 // ---------------------------------------------------------------------
 //  Every map, character, item and quest lives here as data + small
 //  "scripts". The engine (engine.js) only knows how to walk, draw and
@@ -50,16 +50,6 @@ const frag = (id, x, y, value) => ({
   },
 });
 
-const arg = (id, x, y, value, type) => ({
-  id, kind: "item", x, y, emoji: "◆", label: value, color: "#6fb3ef",
-  visible: (s) => !s.flags["got:" + id],
-  onPick: (api) => {
-    api.s.args.push({ value, type });
-    api.log(`hero.pickUp(${value});  // a ${type}`, "cmd");
-    api.toast(`Argument: ${value}  (${type})`);
-  },
-});
-
 // An enemy on the map. `enemy` is a key in ENEMIES (battle.js): it sets the
 // name, stats and which questions it asks in battle.
 const bug = (id, x, y, opts = {}) => ({
@@ -67,6 +57,7 @@ const bug = (id, x, y, opts = {}) => ({
   enemy: opts.enemy ?? "bug",
   roam: opts.roam ?? true,
   emoji: ENEMIES[opts.enemy ?? "bug"].emoji,
+  sprite: ENEMIES[opts.enemy ?? "bug"].sprite,
   persist: !!opts.persist, // persistent enemies stay dead forever
   visible: opts.visible ?? (opts.persist ? (s) => !s.flags["dead:" + id] : undefined),
   requires: opts.requires,
@@ -131,14 +122,16 @@ function shuffle(list) {
   return a;
 }
 
-async function trial(api, who, key, questions) {
+async function trial(api, who, key, questions, opts = {}) {
   const { s } = api;
   // The Keeper's own questions in RANDOM order, then one random
   // 1Z0-808 exam-style question on the same topic as the final test.
-  const exam = EXAM[key][Math.floor(Math.random() * EXAM[key].length)];
-  const all = [...shuffle(questions), exam];
+  const examCount = opts.exams ?? 1;
+  const exams = shuffle(EXAM[key]).slice(0, examCount);
+  const all = [...shuffle(questions), ...exams];
   const total = all.length;
-  await api.say(who, `📝 KEEPER'S TRIAL — ${total} questions. The last one is exam-style (Java SE 8, 1Z0-808).\n\nIf you get one wrong, I'll explain why and ask it again later. Answer right on the first try to earn coins.`);
+  const tail = examCount === 1 ? "The last one is" : `The last ${examCount} are`;
+  await api.say(who, `📝 KEEPER'S TRIAL — ${total} questions. ${tail} exam-style (Java SE 8, 1Z0-808).\n\nIf you get one wrong, I'll explain why and ask it again later. Answer right on the first try to earn coins.`);
   const queue = all.map((q, i) => ({ ...q, i }));
   const missed = new Set();
   let passed = 0;
@@ -162,7 +155,7 @@ async function trial(api, who, key, questions) {
   const perfect = total - missed.size;
   const reward = perfect * 2;
   s.coins += reward;
-  s.flags["trial:" + key] = true;
+  s.flags["trial:" + (opts.flag ?? key)] = true;
   api.log(`TRIAL PASSED (${perfect}/${total} first try, +${reward} coins)`, "ok");
   await api.say(who, `🏅 TRIAL PASSED!\n\nFirst-try answers: ${perfect}/${total}  →  +${reward} 🪙`);
 }
@@ -237,13 +230,46 @@ async function tamsin(api) {
   }
   if (!s.flags["trial:methods"]) {
     await api.say(who, "Hmph. You built a method AND used it. Not bad for a village brat.\n\nBut building isn't understanding. Before you cross that bridge, you face my trial.");
-    await trial(api, who, "methods", METHOD_TRIAL);
+    await trial(api, who, "methods", [...METHOD_TRIAL, ...shuffle(PARAM_TRIAL).slice(0, 2)]);
     api.scroll("methods");
-    await api.say(who, "Take this scroll — the rules of methods. Read it any time with J.\n\nNow go. Brannoc the Smith lives in Parameter Plains, past the bridge. He'll teach you what goes between those ( parentheses ).");
+    api.scroll("params");
+    s.learned.args = true;
+    api.log("Hero can now pass arguments: zap(1), zap(2), zap(3)", "ok");
+    await api.say(who, "Take these scrolls: the rules of methods and of parameters. Read them any time with L.");
+    await api.say("✨ Upgrade", "Press 1, 2 or 3 to choose the ARGUMENT you pass to zap().\n\nIn battle, ✨ Magic casts zap(N): a bigger argument hits harder but costs more MP (N × 2). Same method, different argument, different result.");
+    await api.say(who, "Now go. Brannoc the Smith works his forge in the Private Wilds, past the bridge. He'll teach you to PROTECT your code. Watch for cobras.");
     return;
   }
-  await api.say(who, "Off you go. Brannoc the Smith lives in Parameter Plains, past the bridge.");
+  await api.say(who, "Off you go. Brannoc the Smith works his forge in the Private Wilds, past the bridge.");
 }
+
+// Parameters are taught in Method Village too, so Tamsin's trial mixes these in.
+const PARAM_TRIAL = [
+  {
+    prompt: "What does this print?",
+    code: "static void doubleIt(int x) {\n    x = x * 2;\n}\n\nint coins = 5;\ndoubleIt(coins);\nSystem.out.println(coins);",
+    options: ["5", "10", "0", "It doesn't compile"],
+    why: "Java passed a COPY of coins into x. Doubling x changes only the copy, so coins is still 5. Pass-by-value — just like your pockets.",
+  },
+  {
+    prompt: "In the call  add(3, 4)  — what are 3 and 4?",
+    code: "static int add(int a, int b) {\n    return a + b;\n}\n\nadd(3, 4);",
+    options: ["Arguments", "Parameters", "Return types", "Fields"],
+    why: "a and b are the PARAMETERS (slots in the definition). 3 and 4 are the ARGUMENTS (real values you pass when you call it).",
+  },
+  {
+    prompt: "Which call compiles?",
+    code: "static void open(int code, String word) { ... }",
+    options: ['open(7, "oak");', 'open("oak", 7);', "open(7);", 'open(7.5, "oak");'],
+    why: "Arguments must match the parameters in NUMBER, TYPE and ORDER: first an int, then a String. 7.5 is a double, so it can't go in an int slot.",
+  },
+  {
+    prompt: "What does this print?",
+    code: 'static void addGem(ArrayList<String> bag) {\n    bag.add("gem");\n}\n\nArrayList<String> bag = new ArrayList<>();\nbag.add("bread");\naddGem(bag);\nSystem.out.println(bag);',
+    options: ["[bread, gem]", "[bread]", "[gem]", "[]"],
+    why: "The method got a copy of the REFERENCE — an address pointing at the same list. bag.add() changed that one shared list, so the caller sees the gem.",
+  },
+];
 
 const METHOD_TRIAL = [
   {
@@ -355,6 +381,10 @@ const village = {
     board("m1", 3, 3),
     board("m2", 10, 2),
     board("m3", 5, 10),
+    board("p1", 9, 4),
+    board("p2", 6, 12),
+    board("p3", 12, 10),
+    clueStone("params"),
     clueStone("methods"),
     bug("beetle", 9, 12, { enemy: "beetle", visible: (s) => s.learned.zap }),
     frag("f_public", 2, 12, "public"),
@@ -387,169 +417,250 @@ const village = {
 };
 
 // =====================================================================
-//  2. PARAMETER PLAINS — parameters, arguments, pass-by-value
+//  2. THE PRIVATE WILDS — encapsulation basics with Brannoc the Smith
+//     (the map id stays "plains" so old saves and warps keep working)
 // =====================================================================
+
+// The Forge class, as far as the player has rewritten it.
+const forgeCode = (s) => `public class Forge {
+    ${s.flags.forge1 ? "private int heat;             // ✔ hidden" : "public int heat;              // ✘ anyone can touch this"}
+${s.flags.forge2 ? `
+    public int getHeat() {            // ✔ read access
+        return heat;
+    }
+` : "\n    // getter: ???\n"}${s.flags.forge3 ? `
+    public void setHeat(int heat) {   // ✔ guarded write access
+        if (heat < 0 || heat > 1500) return;
+        this.heat = heat;
+    }
+` : "\n    // setter: ???\n"}}`;
+
+const runesDone = (s) => [1, 2, 3].filter((n) => s.flags["forge" + n]).length;
+
 async function brannoc(api) {
   const { s } = api;
-  const who = "🧔 Brannoc the Smith";
+  const who = "⚒️ Brannoc the Smith";
   api.log("brannoc.talk();", "cmd");
   if (!s.flags.metBrannoc) {
-    await api.say(who, "Ha! A spellcaster! Methods are tools, friend, and a good tool takes INPUT.");
-    await api.say(who, "Look at your own spell:", "public int zap(int power)");
-    await api.say(who, "That 'int power' is a PARAMETER — a slot you design into the method.\n\nWhen you actually cast it, the real value you hand over — the 3 in zap(3) — is called the ARGUMENT.\n\nDesign time: parameter. Call time: argument.");
-    s.learned.args = true;
-    api.log("Hero can now pass arguments: zap(1), zap(2), zap(3)", "ok");
-    await api.say("✨ Upgrade", "Press 1, 2 or 3 to choose the ARGUMENT you pass to zap().\n\nIn battle, ✨ Magic casts zap(N): a bigger argument hits harder but costs more MP (N × 2). Same method, different input, different output.");
-    await api.say(who, "Now the trick the Bugs love. Let me show you with your own pockets. Here's my doubling machine:", "void doubleIt(int x) {\n    x = x * 2;\n}");
-    await api.choose(who, "Hand me your coins: doubleIt(coins).", ["Hand over your coins"]);
-    api.log("brannoc.doubleIt(hero.coins);", "cmd");
-    await api.say(who, `*CLANG* Inside my machine, x became ${s.coins * 2}!\n\n...Now check your coins in the top bar. Still ${s.coins}.\n\nJava passed a COPY of the number. I doubled my copy. Yours never moved. That's PASS-BY-VALUE.`);
-    await api.say(who, "But watch THIS one:", 'void addGem(Bag b) {\n    b.add("gem");\n}');
-    await api.choose(who, "Hand me your bag: addGem(bag).", ["Hand over your bag"]);
-    s.bag.push("gem");
-    api.log("brannoc.addGem(hero.bag);  // your bag changed!", "cmd");
-    await api.say(who, "Look in Hero.java — your bag now has a gem!\n\nJava still passed a copy... but a copy of the REFERENCE: an address that points at the SAME bag. I followed the address and changed the real object.");
-    await api.say(who, "📜 YOUR QUEST: the gate to the east is a method too:", "public void open(int code, String word)");
-    await api.say(who, "Find ARGUMENTS ◆ lying around the plains and drop them into the gate's two parameter slots. TYPE and ORDER both matter. Don't feed a String to an int!\n\nWhen it's open, come back to me for your trial.");
+    await api.say(who, "*CLANG* ... *CLANG* ...\n\nHm. Tamsin's apprentice. You've got the look of someone who just learned methods and thinks that makes them dangerous.");
+    await api.say(who, "Let me tell you what happened to my forge. This is how it was built:", "public class Forge {\n    public int heat;\n}");
+    await api.say(who, "Last night a cobra slid out of the river and set  forge.heat = -40.  Froze it solid.\n\nAn hour later some bandit cranked it to 99999 and cracked my anvil.\n\nNobody broke in. Nobody had to. The field was PUBLIC.");
+    await api.say(who, "That's the law of the Wilds: ENCAPSULATION.\n\nHide your data. Make everyone go through methods YOU control. A field nobody can touch is a field nobody can break.");
+    await api.say(who, "I've nailed everything I know to boards around these woods 📋. Eight of them. One is on the island past the stepping stones, if you've got the nerve.\n\nRead them. The cobras out there will test you on every word.");
+    await api.say(who, "📜 YOUR QUEST: my forge's blueprint is carved into three Forge Runes 🔶 hidden in the Wilds. Rewrite the Forge class at each one:\n\n1. The Field Rune: hide the heat\n2. The Getter Rune: let people READ it\n3. The Setter Rune: let people CHANGE it, safely\n\nFix all three and my fire comes back. Then you face my trial.", forgeCode(s));
     api.flag("metBrannoc");
     return;
   }
-  if (!s.flags.gateOpen) {
-    await api.say(who, "The gate wants open(int code, String word). The top slot takes an int — a whole number. The bottom takes a String — text in \"double quotes\".");
+  if (runesDone(s) < 3) {
+    await api.say(who, `${runesDone(s)} of 3 runes rewritten. Here's the Forge so far:`, forgeCode(s));
+    await api.say(who, "Stuck? The boards 📋 explain every step. And watch the cobras: they bite.");
     return;
   }
-  if (!s.flags["trial:params"]) {
-    await api.say(who, "HA! I heard that gate groan open from here! Good work.\n\nNow — a smith tests every blade before it leaves the forge. Time for your trial!");
-    await trial(api, who, "params", PARAM_TRIAL);
-    api.scroll("params");
-    await api.say(who, "Here — a scroll with the rules of passing values. Read it any time with J.\n\nSage Orrin lives in the Static Spire beyond the gate. Grumpy old man. Never leaves his tower. You'll see why.");
+  if (!s.flags.forgeLit) {
+    s.flags.forgeLit = true;
+    s.atkBonus = 2;
+    api.log("forge.setHeat(1200);   // accepted", "cmd");
+    api.log("forge.setHeat(-40);    // REJECTED by the guard", "err");
+    await api.say(who, "Let's test it.\n\nforge.setHeat(1200);  ... accepted.\nforge.setHeat(-40);   ... REJECTED.\nforge.heat = 99999;   ... won't even compile.\n\n*WHOOSH* — the forge roars back to life!", forgeCode(s));
+    await api.say("⚔️ New weapon", "Brannoc hammers out a blade on the anvil and hands it to you, still glowing.\n\nENCAPSULATED BLADE: your Attack is now +2.\n\n\"A good blade is like a good class. Nobody gets inside it without your say-so.\"");
+  }
+  if (!s.flags["trial:forge"]) {
+    await api.say(who, "Now. A smith tests every blade before it leaves the forge. You get the same treatment.\n\nThe easy ones first. The last two are the kind of questions Oracle puts on the real exam.");
+    await trial(api, who, "encap", FORGE_TRIAL, { flag: "forge", exams: 2 });
+    api.scroll("forge");
+    await api.say(who, "Here: the Smith's Code. Keep it with your scrolls (L).\n\nThe gate east is open now. Sage Orrin lives in the Static Spire beyond. Strange old man. Never leaves his tower. You'll see why.");
     return;
   }
-  await api.say(who, "Gate's open! Sage Orrin lives in the Static Spire beyond. Grumpy old man. Never leaves his tower.");
+  await api.say(who, "Gate's open. Sage Orrin is up in the Static Spire. Mind the cobras on the way out.");
 }
 
-const PARAM_TRIAL = [
+const FORGE_TRIAL = [
   {
-    prompt: "What does this print?",
-    code: "static void doubleIt(int x) {\n    x = x * 2;\n}\n\nint coins = 5;\ndoubleIt(coins);\nSystem.out.println(coins);",
-    options: ["5", "10", "0", "It doesn't compile"],
-    why: "Java passed a COPY of coins into x. Doubling x changes only the copy, so coins is still 5. Pass-by-value — just like your pockets.",
+    prompt: "Which keyword makes a field visible ONLY inside its own class?",
+    code: "public class Forge {\n    ???? int heat;\n}",
+    options: ["private", "public", "protected", "static"],
+    why: "private: only code inside Forge can touch heat. Everyone else has to use the methods you provide.",
   },
   {
-    prompt: "In the call  add(3, 4)  — what are 3 and 4?",
-    code: "static int add(int a, int b) {\n    return a + b;\n}\n\nadd(3, 4);",
-    options: ["Arguments", "Parameters", "Return types", "Fields"],
-    why: "a and b are the PARAMETERS (slots in the definition). 3 and 4 are the ARGUMENTS (real values you pass when you call it).",
+    prompt: "Which is a correct getter for this field?",
+    code: "private double price;",
+    options: [
+      "public double getPrice() { return price; }",
+      "public void getPrice() { return price; }",
+      "public double getPrice(double price) { return price; }",
+      "private double getPrice() { return price; }",
+    ],
+    why: "A getter is public, returns the field's type, takes no parameters, and returns the FIELD. The third one returns its own argument, not the field.",
   },
   {
-    prompt: "Which call compiles?",
-    code: "static void open(int code, String word) { ... }",
-    options: ['open(7, "oak");', 'open("oak", 7);', "open(7);", 'open(7.5, "oak");'],
-    why: "Arguments must match the parameters in NUMBER, TYPE and ORDER: first an int, then a String. 7.5 is a double, so it can't go in an int slot.",
+    prompt: "After p.setScore(50), what does p.getScore() return?",
+    code: "private int score;\n\npublic void setScore(int score) {\n    score = score;\n}\npublic int getScore() { return score; }",
+    options: ["0", "50", "Compilation fails", "null"],
+    why: "The parameter shadows the field, so score = score copies the parameter onto itself. The field keeps its default, 0. Fix: this.score = score;",
   },
   {
-    prompt: "What does this print?",
-    code: 'static void addGem(ArrayList<String> bag) {\n    bag.add("gem");\n}\n\nArrayList<String> bag = new ArrayList<>();\nbag.add("bread");\naddGem(bag);\nSystem.out.println(bag);',
-    options: ["[bread, gem]", "[bread]", "[gem]", "[]"],
-    why: "The method got a copy of the REFERENCE — an address pointing at the same list. bag.add() changed that one shared list, so the caller sees the gem.",
+    prompt: "Which setter keeps heat between 0 and 1500?",
+    code: "private int heat;",
+    options: [
+      "if (h < 0 || h > 1500) return;\nheat = h;",
+      "if (h > 0 && h < 1500) return;\nheat = h;",
+      "heat = h;\nif (h < 0) return;",
+      "heat = Math.abs(h);",
+    ],
+    why: "Check FIRST, then assign. The second one rejects every GOOD value; the third assigns before checking; the fourth turns -40 into 40 instead of rejecting it.",
+  },
+  {
+    prompt: "What is the main reason to make fields private?",
+    code: null,
+    options: [
+      "So the class controls every change and keeps its data valid",
+      "So the program runs faster",
+      "Because Java requires all fields to be private",
+      "So the fields can't be read at all",
+    ],
+    why: "Private fields + public methods = the class decides what's allowed. Getters still let people read; nothing about it is faster or required.",
   },
 ];
 
-function typeWhy(a, slot) {
-  if (a.type === "double") return `${a.value} is a double (it has a decimal point). An ${slot.type} slot can't take it — Java refuses to silently chop off the decimals for you.`;
-  if (a.type === "boolean") return `${a.value} is a boolean — it's only ever true or false. It's not a number and it's not text.`;
-  if (a.type === "String") return `${a.value} is a String — text inside double quotes. An int slot wants a whole number, like 7.`;
-  if (a.type === "int") return `${a.value} is an int. A String slot wants text in double quotes, like "oak". In Java, 7 and "7" are different types!`;
-  return "The argument's type must match the parameter's type.";
-}
+// The three Forge Runes: each one asks you to rewrite part of the Forge class.
+const RUNES = {
+  forge1: {
+    name: "Field Rune", done: "private int heat",
+    prompt: "The heat field is wide open. Which declaration HIDES it?",
+    code: "public class Forge {\n    ????            // the heat field\n}",
+    options: ["private int heat;", "public int heat;", "static int heat;", "final int heat;"],
+    errs: [
+      null,
+      ["ForgeTest: FAILED — `forge.heat = -40;` still compiles from outside", "public is exactly what got us here. Any class can still write forge.heat = -40."],
+      ["ForgeTest: FAILED — heat is shared by EVERY forge, and still visible", "static makes ONE heat for all forges (and it's still package-visible). Hiding a field takes private."],
+      ["Forge.java:5: error: cannot assign a value to final variable heat", "final means heat can NEVER change after it's set. A forge whose heat can't change is useless. We want to CONTROL changes, not forbid them."],
+    ],
+  },
+  forge2: {
+    name: "Getter Rune", done: "getHeat()",
+    prompt: "People need to READ the heat. Which getter is right?",
+    code: "private int heat;\n\n????",
+    options: [
+      "public int getHeat() { return heat; }",
+      "public void getHeat() { return heat; }",
+      "private int getHeat() { return heat; }",
+      "public int getHeat(int heat) { return heat; }",
+    ],
+    errs: [
+      null,
+      ["Forge.java:4: error: incompatible types: unexpected return value", "void promises to return NOTHING, so it can't return heat. A getter returns the field's type: int."],
+      ["Smithy.java:9: error: getHeat() has private access in Forge", "A private getter can't be called from outside the class, which makes it pointless. Getters are public."],
+      ["ForgeTest: FAILED — getHeat(5) returned 5, but heat is 800", "The parameter shadows the field, so this returns whatever you pass in. A getter takes NO parameters and returns the field."],
+    ],
+  },
+  forge3: {
+    name: "Setter Rune", done: "setHeat(int)",
+    prompt: "People need to CHANGE the heat, but only to 0–1500. Which setter is right?",
+    code: "private int heat;\n\n????",
+    options: [
+      "public void setHeat(int heat) {\n    if (heat < 0 || heat > 1500) return;\n    this.heat = heat;\n}",
+      "public void setHeat(int heat) {\n    if (heat < 0 || heat > 1500) return;\n    heat = heat;\n}",
+      "public void setHeat(int heat) {\n    this.heat = heat;\n}",
+      "public int setHeat(int heat) {\n    return this.heat;\n}",
+    ],
+    errs: [
+      null,
+      ["ForgeTest: FAILED — setHeat(800) left heat at 0", "heat = heat assigns the PARAMETER to itself (it shadows the field). The field never changes. Use this.heat = heat;"],
+      ["ForgeTest: FAILED — setHeat(-40) was accepted", "No guard! This setter lets any value in. It's a public field wearing a disguise. The cobra freezes your forge again."],
+      ["ForgeTest: FAILED — setHeat(800) never changed heat", "This 'setter' never assigns anything; it just returns the old value. A setter is void and assigns the field."],
+    ],
+  },
+};
 
-const pedestal = (id, x, y, slot) => ({
-  id, kind: "pedestal", x, y, solid: true,
-  tag: (s) => `${slot.type} ${slot.name} = ${s.flags[id] ?? "?"}`,
+const rune = (id, x, y) => ({
+  id, kind: "rune", x, y, solid: true,
+  solved: (s) => !!s.flags[id],
+  tag: (s) => (s.flags[id] ? `✔ ${RUNES[id].done}` : RUNES[id].name),
   onUse: async (api) => {
     const { s } = api;
-    const who = "🪨 Parameter slot";
+    const R = RUNES[id];
+    const who = `🔶 ${R.name}`;
     if (s.flags[id]) {
-      await api.say(who, `This slot already holds ${s.flags[id]}.`);
+      await api.say(who, "This rune glows green. Your fix is carved into it.", forgeCode(s));
       return;
     }
     if (!s.flags.metBrannoc) {
-      await api.say(who, `A slot carved with: ${slot.type} ${slot.name}\n\nIt's dark. Maybe the smith nearby knows what it wants.`);
+      await api.say(who, "A standing stone carved with Java. Half the code has been scratched out.\n\nThe smith at the forge might know what it means.");
       return;
     }
-    if (s.args.length === 0) {
-      await api.say(who, `An empty slot carved with: ${slot.type} ${slot.name}\n\nIt wants an ARGUMENT of type ${slot.type}. Look for glowing ◆ values around the plains.`);
+    const order = shuffle(R.options.map((_, i) => i));
+    const pick = await api.choose(who, R.prompt, order.map((i) => R.options[i]), R.code);
+    const chosen = order[pick];
+    if (chosen !== 0) {
+      await api.error(who, R.errs[chosen][0], R.errs[chosen][1]);
       return;
     }
-    const i = await api.choose(who, `Parameter:  ${slot.type} ${slot.name}\nWhich argument do you pass in?`,
-      [...s.args.map((a) => `${a.value}     (${a.type})`), "Cancel"]);
-    if (i >= s.args.length) return;
-    const a = s.args[i];
-    if (a.type !== slot.type) {
-      const call = slot.name === "code" ? `gate.open(${a.value}, ...)` : `gate.open(..., ${a.value})`;
-      await api.error(who, `Gate.java:3: error: incompatible types: ${a.type} cannot be converted to ${slot.type}\n    ${call}`, typeWhy(a, slot));
-      return;
-    }
-    s.args.splice(i, 1);
-    s.flags[id] = a.value;
-    api.log(`slot "${slot.type} ${slot.name}" <- ${a.value}`, "ok");
-    if (s.flags.slot1 && s.flags.slot2) {
-      api.log(`gate.open(${s.flags.slot1}, ${s.flags.slot2});`, "cmd");
-      s.flags.gateOpen = true;
-      await api.say("⛩️ The Gate", `gate.open(${s.flags.slot1}, ${s.flags.slot2});\n\nThe arguments match the parameters in TYPE and in ORDER.\n\nThe gate grinds open!`);
-    } else {
-      await api.say(who, `${a.value} fits the ${slot.type} slot perfectly. One more parameter to fill.`);
-    }
+    s.flags[id] = true;
+    api.log(`Forge rewritten: ${R.done}`, "ok");
+    await api.say(who, "The carving flares green. The Forge class rewrites itself:", forgeCode(s));
+    if (runesDone(s) === 3) api.toast("All 3 Forge Runes rewritten! Return to Brannoc.");
   },
 });
 
 const plains = {
-  name: "Parameter Plains",
-  theme: "plains",
+  name: "The Private Wilds",
+  theme: "wilds",
   tiles: [
     "TTTTTTTTTTTTTTTTTTTT",
-    "T.....f.......r....T",
-    "T..r..........f....T",
-    "T.......f......r...T",
-    "T....,,,,,,,,,,,...T",
-    ",,,,,,..........,..r",
-    "T...........f...,,,.",
-    "T.f..r..........,..r",
-    "T......f..r........T",
-    "T.......,,,,.......T",
-    "T..f....,~~,....f..T",
-    "T.......,~~,.......T",
-    "T..r..........r....T",
+    "T.......r..h..TT.TTT",
+    "T.h,,,,,,,,,,...h.TT",
+    "T..,...ff....,..r..T",
+    "T..,..hff....,.....T",
+    ",,,,.........,,,,..T",
+    "T..h......r...h.,,,,",
+    "CCCCC^CCCCCCCC^CCCCC",
+    "~~~..,....h...,..TTT",
+    "~~~~.,..r.....,.h.TT",
+    "T~~~SS~~,,,,,,,..h.T",
+    "T~~~SS~~~~.....r...T",
+    "T.h.S~~~~~..h....rTT",
     "TTTTTTTTTTTTTTTTTTTT",
   ],
   spawn: { x: 1, y: 5 },
   entities: () => [
-    { id: "brannoc", kind: "npc", x: 6, y: 2, emoji: "🧔", name: "Brannoc", heals: true, solid: true, onUse: brannoc },
-    { id: "forge", kind: "obj", x: 7, y: 2, emoji: "🔥", solid: true,
-      onUse: (api) => api.say("🔥 Forge", "Brannoc's forge. It's hot enough to melt a NullPointerException.") },
-    pedestal("slot1", 17, 5, { type: "int", name: "code" }),
-    pedestal("slot2", 17, 7, { type: "String", name: "word" }),
-    { id: "gatesign", kind: "obj", x: 18, y: 5, emoji: "🪧", solid: true,
-      onUse: (api) => api.say("🪧 Gate sign", "This gate is a method. Fill its parameter slots with matching arguments:", "public void open(int code, String word)\n//               ^ slot 1   ^ slot 2") },
+    { id: "brannoc", kind: "npc", sprite: "smith", x: 3, y: 1, name: "Brannoc", heals: true, solid: true, onUse: brannoc },
     {
-      id: "gate", kind: "gate", x: 19, y: 6, solid: (s) => !s.flags.gateOpen,
-      onBump: (api) => api.say("⛩️ The Gate", "Locked. The bars glow with a signature:", "public void open(int code, String word)"),
+      id: "forge", kind: "forge", x: 1, y: 1, solid: true, lit: (s) => !!s.flags.forgeLit,
+      onUse: (api) => api.say("🔥 The Forge", api.s.flags.forgeLit
+        ? "Roaring hot, and safe. Nobody can set its heat to anything silly anymore."
+        : "Stone cold, with frost on the bricks. Someone set its heat to -40.", forgeCode(api.s)),
     },
-    arg("a_7", 3, 11, "7", "int"),
-    arg("a_oak", 15, 2, '"oak"', "String"),
-    arg("a_pi", 12, 9, "3.14", "double"),
-    arg("a_true", 2, 7, "true", "boolean"),
-    bug("pb1", 10, 6, { enemy: "worm" }),
-    bug("pb2", 5, 10, { enemy: "worm" }),
-    bug("pb3", 14, 11, { enemy: "worm" }),
-    board("p1", 2, 4),
-    board("p2", 9, 1),
-    board("p3", 13, 8),
-    clueStone("params"),
+    {
+      id: "anvil", kind: "anvil", x: 2, y: 1, solid: true,
+      onUse: (api) => api.say("⚒️ Anvil", api.s.flags.forgeLit ? "Your Encapsulated Blade was forged here." : "Cracked clean through the middle. Someone set the forge to 99999."),
+    },
+    {
+      id: "wildsign", kind: "obj", x: 2, y: 6, emoji: "🪧", solid: true,
+      onUse: (api) => api.say("🪧 Weathered sign", "THE PRIVATE WILDS\n\nCobras in the grass. Cliffs to the south: take the stone stairs.\n\nThe smith's forge is to the north-west."),
+    },
+    rune("forge1", 17, 2),
+    rune("forge2", 10, 11),
+    rune("forge3", 17, 9),
+    board("w1", 6, 1),
+    board("w2", 9, 3),
+    board("w3", 15, 4),
+    board("w4", 11, 6),
+    board("w5", 7, 8),
+    board("w6", 12, 9),
+    board("w7", 16, 11),
+    board("w8", 1, 12),
+    bug("cobra1", 8, 4, { enemy: "cobra" }),
+    bug("cobra2", 11, 10, { enemy: "cobra" }),
+    bug("cobra3", 16, 8, { enemy: "cobra" }),
+    clueStone("encap"),
+    {
+      id: "gate", kind: "gate", x: 19, y: 6, solid: (s) => !s.flags["trial:forge"],
+      onBump: (api) => api.say("⛩️ The East Gate", "Barred. A plate on the bars reads:", "private boolean open;   // only Brannoc can change this"),
+    },
     warp(0, 5, "village", 18, 5),
     warp(19, 6, "spire", 1, 5, {
-      when: (s) => !!s.flags["trial:params"],
-      onBlocked: (api) => api.say("🧔 Brannoc (bellowing)", "OI, FRIEND! Gate's open, but you haven't passed my trial! Come back to the forge!"),
+      when: (s) => !!s.flags["trial:forge"],
+      onBlocked: (api) => api.say("⚒️ Brannoc (shouting)", "Oi! That gate stays shut until you've passed my trial!"),
     }),
   ],
 };
@@ -961,7 +1072,6 @@ const castle = {
     board("e2", 17, 4),
     board("e3", 13, 12),
     board("e4", 4, 1),
-    clueStone("encap"),
     bug("slime1", 17, 6, { enemy: "slime" }),
     bug("slime2", 2, 5, { enemy: "slime" }),
     warp(9, 13, "spire", 9, 2),
@@ -1107,9 +1217,9 @@ export function objective(s) {
     [s.learned.zap, `Collect method fragments ✦ (${s.fragments.length}/6), then compile them at the Compiler Stone 🗿.`],
     [f["dead:bb1"] && f["dead:bb2"], "Battle the Bugs on the bridge — walk into them (or zap them for a first strike)."],
     [f["trial:methods"], "📝 Return to Old Tamsin 👵 and pass her trial."],
-    [f.metBrannoc, "Cross the bridge east to Parameter Plains and find Brannoc the Smith 🧔."],
-    [f.gateOpen, "Collect arguments ◆ and fill the gate's slots: open(int code, String word)."],
-    [f["trial:params"], "📝 Return to Brannoc 🧔 and pass his trial."],
+    [f.metBrannoc, "Cross the bridge east into the Private Wilds and find Brannoc the Smith at his forge."],
+    [f.forge1 && f.forge2 && f.forge3, `Rewrite the 3 Forge Runes 🔶 (${[1, 2, 3].filter((n) => f["forge" + n]).length}/3). Stuck? Read the boards 📋.`],
+    [f["trial:forge"], "📝 Return to Brannoc ⚒️: relight the forge and pass his trial."],
     [f.metOrrin, "Go through the gate to the Static Spire and talk to Sage Orrin 🧙‍♂️."],
     [f["lit:b"], "Light lantern b — and ONLY b."],
     [f.usedLightAll, f.orrinStep2 ? "Use the class plaque 📜 to light every lantern with ONE static call." : "Talk to Sage Orrin again."],

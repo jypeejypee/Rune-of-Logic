@@ -204,6 +204,41 @@ const encap = [
     options: ["Hiding data and only allowing access through methods", "Making everything static", "Putting all code in main", "Deleting unused fields"],
     why: "Encapsulation = private data + public methods that control how the data is read and changed.",
   },
+  {
+    prompt: "What does 'this' refer to inside an instance method?",
+    code: "public void setHeat(int heat) {\n    this.heat = heat;\n}",
+    options: ["The current object — the one the method was called on", "The class itself", "The parameter heat", "The method's return value"],
+    why: "'this' is the object running the method. this.heat is the FIELD; plain heat is the PARAMETER that shadows it.",
+  },
+  {
+    prompt: "Which class is properly encapsulated?",
+    code: null,
+    options: [
+      "private fields + public getters/setters",
+      "public fields + private getters/setters",
+      "public fields, no methods",
+      "static fields + static methods only",
+    ],
+    why: "Hide the data (private fields), expose controlled access (public methods). That's the recipe.",
+  },
+  {
+    prompt: "What's wrong with this setter?",
+    code: "private int heat;\n\npublic void setHeat(int heat) {\n    heat = heat;\n}",
+    options: ["It assigns the parameter to itself; the field never changes", "Nothing — it works fine", "Setters can't have parameters", "It must return an int"],
+    why: "The parameter shadows the field, so both sides mean the parameter. Fix: this.heat = heat;",
+  },
+  {
+    prompt: "A class has private final fields and NO setters. What does that make it?",
+    code: "public final class Point {\n    private final int x, y;\n    public Point(int x, int y) { this.x = x; this.y = y; }\n    public int getX() { return x; }\n    public int getY() { return y; }\n}",
+    options: ["Immutable — its state can't change after construction", "Broken — every field needs a setter", "Static", "Abstract"],
+    why: "No setters + private final fields = immutable. String works exactly like this.",
+  },
+  {
+    prompt: "Where is the BEST place to reject an invalid value for a private field?",
+    code: null,
+    options: ["Inside the setter (and the constructor)", "In main, before every call", "Nowhere — Java checks it automatically", "In the getter"],
+    why: "The class guards its own data. Every write goes through the setter or constructor, so one check there protects every caller.",
+  },
 ];
 
 // CLUE STONES 🪨 — one per area, far from the entrance. The question marked
@@ -211,9 +246,9 @@ const encap = [
 // shows that question's `clue`. (world.js places a stone at each spot.)
 export const CLUE_STONES = {
   methods: { map: "village", x: 1, y: 12, area: "Method Village", where: "the far south-west corner of Method Village" },
-  params: { map: "plains", x: 18, y: 12, area: "Parameter Plains", where: "the far south-east corner of Parameter Plains" },
+  params: { map: "village", x: 18, y: 2, area: "Method Village", where: "the far north-east corner of Method Village, across the bridge" },
   static: { map: "spire", x: 18, y: 12, area: "Static Spire", where: "the far south-east corner of the Static Spire" },
-  encap: { map: "castle", x: 18, y: 1, area: "Encapsulation Castle", where: "the far north-east corner of Encapsulation Castle" },
+  encap: { map: "wilds", x: 16, y: 12, area: "the Private Wilds", where: "the far south-east corner of the Private Wilds" },
 };
 
 const tag = (list, topic) => list.map((q, i) => ({ ...q, id: `${topic}${i}`, topic }));

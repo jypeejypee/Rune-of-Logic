@@ -1,12 +1,14 @@
-# The Encapsulated Kingdom
+# Rune of Logic
+
+*Chapter 1: The Encapsulated Kingdom*
 
 A small top-down RPG where **Java is magic**. You walk around as Rook, an
 apprentice coder, and every quest *is* a Java idea:
 
 | Area | What you do | What you learn |
 |---|---|---|
-| 🏘️ Method Village | Collect glowing code fragments and assemble your first spell at the Compiler Stone. One fragment is a liar. | Method anatomy, return types, `void` |
-| 🌾 Parameter Plains | Brannoc doubles your coins (they don't change!) and adds a gem to your bag (it does!). Then feed the right *arguments* into a gate's *parameter* slots. | Parameters vs. arguments, pass-by-value, types |
+| 🏘️ Method Village | Collect glowing code fragments and assemble your first spell at the Compiler Stone (one fragment is a liar). Lesson boards also teach parameters. | Method anatomy, return types, `void`, parameters vs. arguments, pass-by-value |
+| 🌲 The Private Wilds | Brannoc the Smith's forge was frozen by a cobra because its field was public. Rewrite the Forge class at three Forge Runes (field, getter, setter), win the Encapsulated Blade, and fight cobras. 8 lesson boards, one on a hidden island. | Encapsulation basics: `private`, getters, setters, `this`, constructors, access modifiers, immutable classes |
 | 🗼 Static Spire | Light lanterns one by one, watch the shared counter, then light them all with one call on the class. | `static` vs. instance |
 | 🏰 Encapsulation Castle | You can't walk into the private vault. Larry the Leak abuses the setter, so you patch it with a guard. | `private`, getters, setters, validation |
 | 👾 The Leaky Class | Boss fight: dodge bugs and seal four leaks by fixing its code. | All of it at once |
@@ -69,6 +71,7 @@ terminal to stop.
 | Space / J | Advance dialogue |
 | 1 2 3 | Choose the argument you pass: `zap(1)`, `zap(2)`, `zap(3)` (once Brannoc teaches you) |
 | L | Journal: current quest, lessons and scrolls |
+| Ctrl+Shift+Y | 🛠️ Admin (for testing): finish every challenge in this area and jump to the next map |
 
 If your HP hits 0 you see a fake stack trace and respawn at the area entrance.
 You never lose progress.

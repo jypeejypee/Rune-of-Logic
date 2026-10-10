@@ -189,7 +189,9 @@ export default function BattleScreen({ battle, s, changed, onDone }) {
         <div className={`foe ${foeAnim}`}>
           <div className="foe-name">{enemy.name}</div>
           <div className="bar foe-bar"><span style={{ width: pct(enemyHp, enemy.hp) }} /></div>
-          <div className="foe-sprite">{enemy.emoji}</div>
+          {enemy.image
+            ? <img className="foe-sprite foe-img" src={enemy.image} alt={enemy.name} />
+            : <div className="foe-sprite">{enemy.emoji}</div>}
           {fx?.who === "foe" && <div key={fx.key} className="dmg" style={{ color: fx.color }}>{fx.text}</div>}
         </div>
         <div className={`ally ${heroAnim}`}>

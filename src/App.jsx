@@ -7,7 +7,7 @@ import { expToNext } from "./game/battle.js";
 import BattleScreen from "./BattleScreen.jsx";
 
 // localStorage key — your progress is saved in the browser under this name.
-const SAVE_KEY = "encapsulated-kingdom-rpg-v2";
+const SAVE_KEY = "rune-of-logic-rpg-v2";
 
 function loadSave() {
   try {
@@ -112,7 +112,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
-        <div className="title">⚔️ The Encapsulated Kingdom</div>
+        <div className="title">⚔️ Rune of Logic</div>
         {s && <Hud s={s} />}
         <div className="header-btns">
           {s && <button className="link-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => setJournal(true)}>📜 Journal (L)</button>}
@@ -193,7 +193,8 @@ function TitleScreen({ hasSave, onStart }) {
     <div className="overlay title-screen">
       <div className="title-card">
         <div className="title-emoji">🍥✨🐛</div>
-        <h1>The Encapsulated Kingdom</h1>
+        <h1>Rune of Logic</h1>
+        <p className="tagline">Chapter 1: The Encapsulated Kingdom</p>
         <p className="tagline">A tiny RPG where Java is magic.</p>
         <p>
           Build spells out of <b>methods</b>. Open gates with <b>arguments</b>.
@@ -368,6 +369,7 @@ function heroLines(s) {
   add(`    private int level = ${s.level};`);
   add(`    private int mp = ${s.mp};`);
   add(`    private int coins = ${s.coins};`);
+  if (s.atkBonus) add(`    private String weapon = "Encapsulated Blade";  // +${s.atkBonus} attack`, "new");
   add(`    private String[] bag = {${s.bag.map(q).join(", ")}};`);
   if (s.fragments.length) add(`    // fragments: ${s.fragments.join(" | ")}`, "frag");
   if (s.args.length) add(`    // arguments: ${s.args.map((a) => a.value).join(", ")}`, "arg");

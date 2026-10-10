@@ -213,6 +213,37 @@ const encap = [
   },
 ];
 
+encap.push(
+  {
+    objective: "Create and overload constructors (this() chaining)",
+    prompt: "What is the result?",
+    code: "public class Item {\n    private String name;\n    private int qty;\n    public Item() { this(\"none\", 1); }\n    public Item(String name, int qty) {\n        this.name = name;\n        this.qty = qty;\n    }\n\n    public static void main(String[] args) {\n        Item i = new Item();\n        System.out.println(i.name + \" \" + i.qty);\n    }\n}",
+    options: ["none 1", "null 0", "Compilation fails", "none 0"],
+    why: "this(\"none\", 1) calls the OTHER constructor of the same class, which sets both private fields. Constructor chaining keeps all the setup in one place.",
+  },
+  {
+    objective: "Create and overload constructors (this() placement)",
+    prompt: "In Java 8, what is the result of compiling this class?",
+    code: "public class Item {\n    private String name;\n    public Item() {\n        System.out.println(\"creating\");\n        this(\"none\");\n    }\n    public Item(String name) { this.name = name; }\n}",
+    options: ["Compilation fails", "It compiles", "It compiles, but throws at runtime", "It compiles with a warning"],
+    why: "In Java 8, a call to this(...) or super(...) must be the FIRST statement in a constructor. (Very new Java versions relax this, but the 1Z0-808 exam is Java 8.)",
+  },
+  {
+    objective: "Apply encapsulation principles (leaking mutable state)",
+    prompt: "What is the result?",
+    code: "class Bag {\n    private List<String> items = new ArrayList<>();\n    public List<String> getItems() { return items; }\n}\n\nBag b = new Bag();\nb.getItems().add(\"gem\");\nb.getItems().add(\"key\");\nSystem.out.println(b.getItems().size());",
+    options: ["2", "0", "Compilation fails: items is private", "An exception is thrown"],
+    why: "The field is private, but the getter hands out a reference to the REAL list, so callers can change it. Encapsulation leak! Safer: return new ArrayList<>(items);",
+  },
+  {
+    objective: "Apply encapsulation principles (immutable classes)",
+    prompt: "What is the result of compiling Point?",
+    code: "class Point {\n    private final int x;\n    public Point(int x)   { this.x = x; }\n    public void setX(int x) { this.x = x; }\n}",
+    options: ["Compilation fails", "It compiles", "It compiles, but setX throws at runtime", "It compiles; setX is ignored"],
+    why: "A final field can be assigned only once, in the constructor. setX tries to change it: error: cannot assign a value to final variable x. Immutable classes simply don't have setters.",
+  },
+);
+
 const tag = (list, topic) => list.map((q, i) => ({ ...q, id: `${topic}X${i}`, topic, exam: true }));
 
 export const EXAM = {

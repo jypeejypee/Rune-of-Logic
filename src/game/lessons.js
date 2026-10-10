@@ -136,6 +136,90 @@ export const LESSONS = {
     ],
   },
 
+  // ---------------------------------------------------------- THE PRIVATE WILDS (Brannoc)
+  w1: {
+    title: "Why encapsulate?",
+    area: "The Private Wilds",
+    pages: [
+      { text: "A public field is an unlocked door. ANY code, anywhere, can put ANY value in it, and the class can't stop it:",
+        code: "public class Forge {\n    public int heat;\n}\n\nforge.heat = -40;      // frozen solid\nforge.heat = 99999;    // anvil cracked" },
+      { text: "Encapsulation gives you three things:\n\n1. VALID DATA: the class rejects bad values.\n2. ONE PLACE TO CHANGE: rules live inside the class, not in 50 callers.\n3. FREEDOM: you can change HOW data is stored later without breaking anyone who uses the class." },
+    ],
+  },
+  w2: {
+    title: "Step 1 — Make fields private",
+    area: "The Private Wilds",
+    pages: [
+      { text: "Mark every field private. Now only code INSIDE the class can read or write it.",
+        code: "public class Forge {\n    private int heat;\n}\n\n// in another class:\nforge.heat = 50;\n// error: heat has private access in Forge" },
+      { text: "Exam trap: private means private to the CLASS, not to the object. Code inside Forge may touch the private fields of ANOTHER Forge object:",
+        code: "public boolean hotterThan(Forge other) {\n    return this.heat > other.heat;   // ✔ legal\n}" },
+    ],
+  },
+  w3: {
+    title: "Step 2 — Getters (read access)",
+    area: "The Private Wilds",
+    pages: [
+      { text: "A GETTER lets outsiders READ a private field. Rules:\n• public\n• returns the field's type\n• takes NO parameters\n• named get + FieldName",
+        code: "public int getHeat() {\n    return heat;\n}" },
+      { text: "For boolean fields, the convention is is + FieldName:",
+        code: "private boolean lit;\n\npublic boolean isLit() {\n    return lit;\n}" },
+      { text: "Careful with objects! Returning a private List hands out the REAL list, and callers can change it. Return a copy instead:",
+        code: "public List<String> getTools() {\n    return new ArrayList<>(tools);   // a copy: safe\n}" },
+    ],
+  },
+  w4: {
+    title: "Step 3 — Setters (write access)",
+    area: "The Private Wilds",
+    pages: [
+      { text: "A SETTER lets outsiders CHANGE a private field, on the class's terms. Rules:\n• public void\n• ONE parameter of the field's type\n• named set + FieldName",
+        code: "public void setHeat(int heat) {\n    if (heat < 0 || heat > 1500) return;   // guard\n    this.heat = heat;\n}" },
+      { text: "The guard is the whole point. Without it, a setter is just a public field wearing a disguise.\n\nIf a field should NEVER change from outside, simply don't write a setter for it." },
+    ],
+  },
+  w5: {
+    title: "The 'this' keyword",
+    area: "The Private Wilds",
+    pages: [
+      { text: "When a parameter has the same name as a field, the parameter SHADOWS the field. Inside the method, plain 'heat' means the parameter.",
+        code: "private int heat;\n\npublic void setHeat(int heat) {\n    heat = heat;        // ✘ parameter = parameter\n}                       //   the field never changes!" },
+      { text: "'this' means \"the current object\". this.heat is always the FIELD:",
+        code: "public void setHeat(int heat) {\n    this.heat = heat;   // ✔ field = parameter\n}" },
+    ],
+  },
+  w6: {
+    title: "Constructors keep objects valid",
+    area: "The Private Wilds",
+    pages: [
+      { text: "A constructor sets the private fields when the object is BORN. Validate there too, so an object can never start in a bad state.",
+        code: "public Forge(int heat) {\n    setHeat(heat);      // reuse the setter's guard\n}" },
+      { text: "Java gives you a free no-argument constructor ONLY if you write no constructors at all. Write one, and the free one disappears:",
+        code: "public class Forge {\n    public Forge(int heat) { ... }\n}\n\nnew Forge();     // ✘ compilation fails" },
+      { text: "this(...) calls another constructor of the same class. In Java 8 it must be the FIRST line:",
+        code: "public Forge() {\n    this(800);          // default heat\n}" },
+    ],
+  },
+  w7: {
+    title: "Access modifiers in depth",
+    area: "The Private Wilds",
+    pages: [
+      { text: "Who can see a member?\n\nRule of thumb: fields private, methods public, helpers private.",
+        code: "                class  package  subclass  world\npublic            ✔       ✔        ✔        ✔\nprotected         ✔       ✔        ✔        ✘\n(no modifier)     ✔       ✔        ✘        ✘\nprivate           ✔       ✘        ✘        ✘" },
+      { text: "Exam trap: (no modifier) is called package-private. A class in ANOTHER package can't see it, even with an import:",
+        code: "package a;  public class A { int x; }\n\npackage b;  ... new A().x\n// error: x is not public in A;\n//        cannot be accessed from outside package" },
+    ],
+  },
+  w8: {
+    title: "Secret lesson — Immutable classes",
+    area: "The Private Wilds (hidden island)",
+    pages: [
+      { text: "The strongest encapsulation: an object that can NEVER change after it's built.\n\n1. Make the class final (no sneaky subclasses)\n2. Make every field private final\n3. Set fields only in the constructor\n4. Write NO setters",
+        code: "public final class Rune {\n    private final String name;\n    public Rune(String name) { this.name = name; }\n    public String getName()  { return name; }\n}" },
+      { text: "String is immutable. That's why s.toUpperCase() returns a NEW String and leaves s unchanged, a favourite exam trick.",
+        code: "String s = \"java\";\ns.toUpperCase();\nSystem.out.println(s);   // java" },
+    ],
+  },
+
   // ---------------------------------------------------------- FINALE
   x1: {
     title: "The Four Truths",
