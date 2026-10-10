@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 // ---------------------------------------------------------------------
 //  On-screen gamepad for phones and tablets. Each button pretends to be
@@ -40,16 +40,89 @@ function PadButton({ code, className = "", children, label }) {
   );
 }
 
+// A see-through joystick (like Mobile Legends): drag the knob with your
+// thumb, the hero walks the way you push most, and it springs back when
+// you let go. The map is a grid, so it picks one of four directions.
+const DIR_KEY = { up: "KeyW", down: "KeyS", left: "KeyA", right: "KeyD" };
+
+function Joystick() {
+  const baseRef = useRef(null);
+  const knobRef = useRef(null);
+  const drag = useRef(null); // { id, dir }
+
+  const setDir = (dir) => {
+    const prev = drag.current?.dir;
+    if (prev === dir) return;
+    if (prev) send("keyup", DIR_KEY[prev]);
+    if (dir) send("keydown", DIR_KEY[dir]);
+    if (drag.current) drag.current.dir = dir;
+    baseRef.current.dataset.dir = dir || "";
+  };
+
+  const move = (e) => {
+    const rect = baseRef.current.getBoundingClientRect();
+    const radius = rect.width / 2;
+    let dx = e.clientX - (rect.left + radius);
+    let dy = e.clientY - (rect.top + radius);
+    const dist = Math.hypot(dx, dy);
+    const max = radius * 0.6; // how far the knob may travel
+    if (dist > max) {
+      dx = (dx / dist) * max;
+      dy = (dy / dist) * max;
+    }
+    knobRef.current.style.transform = `translate(${dx}px, ${dy}px)`;
+    if (dist < radius * 0.22) setDir(null); // small dead zone in the middle
+    else if (Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? "right" : "left");
+    else setDir(dy > 0 ? "down" : "up");
+  };
+
+  const down = (e) => {
+    e.preventDefault();
+    if (drag.current) return;
+    baseRef.current.setPointerCapture?.(e.pointerId);
+    drag.current = { id: e.pointerId, dir: null };
+    baseRef.current.classList.add("active");
+    move(e);
+  };
+  const onMove = (e) => {
+    if (drag.current?.id === e.pointerId) move(e);
+  };
+  const up = (e) => {
+    if (drag.current?.id !== e.pointerId) return;
+    setDir(null);
+    drag.current = null;
+    baseRef.current.classList.remove("active");
+    knobRef.current.style.transform = "";
+  };
+
+  // Let go of any held direction if the joystick disappears mid-drag.
+  useEffect(() => () => drag.current?.dir && send("keyup", DIR_KEY[drag.current.dir]), []);
+
+  return (
+    <div
+      ref={baseRef}
+      className="joystick"
+      aria-label="Move joystick"
+      onPointerDown={down}
+      onPointerMove={onMove}
+      onPointerUp={up}
+      onPointerCancel={up}
+      onLostPointerCapture={up}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <span className="joy-arrow up">▲</span>
+      <span className="joy-arrow down">▼</span>
+      <span className="joy-arrow left">◀</span>
+      <span className="joy-arrow right">▶</span>
+      <span ref={knobRef} className="joy-knob" />
+    </div>
+  );
+}
+
 export default function TouchPad({ s }) {
   return (
     <div className="touchpad">
-      <div className="dpad">
-        <PadButton code="KeyW" className="up" label="Walk up">▲</PadButton>
-        <PadButton code="KeyA" className="left" label="Walk left">◀</PadButton>
-        <PadButton code="KeyD" className="right" label="Walk right">▶</PadButton>
-        <PadButton code="KeyS" className="down" label="Walk down">▼</PadButton>
-        <span className="dpad-hub" />
-      </div>
+      <Joystick />
 
       <div className="pad-actions">
         {s.learned.args && (

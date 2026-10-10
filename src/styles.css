@@ -499,23 +499,43 @@ code { font-family: var(--mono); color: var(--blue); }
 .pad-btn {
   touch-action: none; -webkit-tap-highlight-color: transparent; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  color: var(--ink); font-weight: 800; border: 2px solid var(--border);
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
-  box-shadow: 0 4px 0 #0d0918; transition: transform .06s, box-shadow .06s, filter .06s;
+  color: #fff; font-weight: 800; border: 2px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.08); text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  box-shadow: inset 0 0 16px rgba(255,255,255,.06), 0 3px 10px rgba(0,0,0,.3);
+  transition: transform .06s, background .06s, border-color .06s;
 }
-.pad-btn.is-down { transform: translateY(3px); box-shadow: 0 1px 0 #0d0918; filter: brightness(1.35); }
+.pad-btn.is-down { transform: scale(.92); background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.75); }
 
-/* D-pad: a plus shape on a 3x3 grid */
-.dpad {
-  position: relative; display: grid; gap: 0;
-  grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(3, 54px);
+/* Joystick: see-through ring with a knob that follows the thumb */
+.joystick {
+  position: relative; flex: 0 0 auto; width: 150px; height: 150px; border-radius: 50%;
+  touch-action: none; -webkit-tap-highlight-color: transparent;
+  background: radial-gradient(circle, rgba(255,255,255,.04) 0 55%, rgba(255,255,255,.1) 56% 100%);
+  border: 2px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 0 24px rgba(0,0,0,.35);
+  opacity: .55; transition: opacity .15s;
 }
-.dpad .pad-btn { font-size: 18px; color: var(--gold); border-radius: 10px; }
-.dpad .up { grid-area: 1 / 2; border-radius: 12px 12px 4px 4px; }
-.dpad .left { grid-area: 2 / 1; border-radius: 12px 4px 4px 12px; }
-.dpad .right { grid-area: 2 / 3; border-radius: 4px 12px 12px 4px; }
-.dpad .down { grid-area: 3 / 2; border-radius: 4px 4px 12px 12px; }
-.dpad-hub { grid-area: 2 / 2; margin: 6px; border-radius: 50%; background: var(--bg); border: 2px solid var(--border); }
+.joystick.active { opacity: .95; }
+.joy-knob {
+  position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px;
+  border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.55), rgba(255,255,255,.18) 60%, rgba(255,255,255,.08));
+  border: 2px solid rgba(255,255,255,.55); box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  transition: transform .18s ease-out;
+}
+.joystick.active .joy-knob { transition: none; }
+.joy-arrow {
+  position: absolute; font-size: 12px; color: rgba(255,255,255,.4); pointer-events: none;
+  transition: color .1s, text-shadow .1s;
+}
+.joy-arrow.up { top: 8px; left: 50%; transform: translateX(-50%); }
+.joy-arrow.down { bottom: 8px; left: 50%; transform: translateX(-50%); }
+.joy-arrow.left { left: 10px; top: 50%; transform: translateY(-50%); }
+.joy-arrow.right { right: 10px; top: 50%; transform: translateY(-50%); }
+.joystick[data-dir="up"] .joy-arrow.up,
+.joystick[data-dir="down"] .joy-arrow.down,
+.joystick[data-dir="left"] .joy-arrow.left,
+.joystick[data-dir="right"] .joy-arrow.right { color: var(--gold); text-shadow: 0 0 8px var(--gold); }
 
 /* Action buttons, arranged like a console controller */
 .pad-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
@@ -529,11 +549,10 @@ code { font-family: var(--mono); color: var(--blue); }
 .pad-btn.journal { grid-area: 1 / 2; width: 48px; height: 48px; justify-self: center; }
 .pad-btn.journal span { font-size: 16px; }
 .pad-btn.journal small { display: none; }
-.pad-btn.zap { grid-area: 2 / 1; width: 64px; height: 64px; border-color: var(--blue); box-shadow: 0 4px 0 #1b3a5c; }
+.pad-btn.zap { grid-area: 2 / 1; width: 64px; height: 64px; border-color: rgba(111,179,239,.7); background: rgba(111,179,239,.14); }
 .pad-btn.talk {
   grid-area: 2 / 2; width: 72px; height: 72px;
-  background: linear-gradient(180deg, #ffe08a, var(--gold) 55%, #d99a2b); color: #2a1608;
-  border-color: #fff1c4; box-shadow: 0 4px 0 #8a5a14;
+  border-color: rgba(244,201,93,.8); background: rgba(244,201,93,.2);
 }
 .pad-args { display: flex; gap: 6px; }
 .pad-btn.arg { width: 40px; height: 40px; border-radius: 10px; font-family: var(--mono); font-size: 16px; color: var(--blue); }
@@ -547,8 +566,10 @@ code { font-family: var(--mono); color: var(--blue); }
   .objective { font-size: 13px; }
   .battle { position: fixed; border-radius: 0; z-index: 50; }
   .overlay:not(.title-screen) { position: fixed; border-radius: 0; z-index: 40; }
+  /* NPC talk sits at the TOP so thumbs on the controls never cover it */
   .dialog {
-    position: fixed; left: 8px; right: 8px; bottom: 8px; z-index: 30; max-height: 60vh;
+    position: fixed; left: 8px; right: 8px; top: 8px; bottom: auto; z-index: 30; max-height: 45vh;
+    box-shadow: 0 8px 30px rgba(0,0,0,.7);
   }
   .battle-ui { flex-direction: column-reverse; max-height: 62%; }
   .ff-window.status { flex: 0 0 auto; display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; align-items: center; padding: 6px 12px; }
@@ -560,7 +581,7 @@ code { font-family: var(--mono); color: var(--blue); }
   .choice { padding: 10px; }
 }
 @media (max-width: 380px) {
-  .dpad { grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(3, 46px); }
+  .joystick { width: 132px; height: 132px; }
   .pad-main { grid-template-columns: 56px 64px; grid-template-rows: 44px 64px; }
   .pad-btn.zap { width: 56px; height: 56px; }
   .pad-btn.talk { width: 64px; height: 64px; }
