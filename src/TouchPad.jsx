@@ -135,7 +135,7 @@ export default function TouchPad({ s }) {
           </div>
         )}
         <div className="pad-main">
-          <PadButton code="KeyL" className="act journal" label="Journal"><span>📜</span><small>Journal</small></PadButton>
+          <PadButton code="KeyL" className="act book" label="Journal"><span>📜</span><small>Journal</small></PadButton>
           <PadButton code="KeyK" className="act zap" label="Zap"><span>✨</span><small>Zap</small></PadButton>
           <PadButton code="KeyJ" className="act talk" label="Talk / use"><span>💬</span><small>Talk</small></PadButton>
         </div>

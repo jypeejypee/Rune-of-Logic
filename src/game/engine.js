@@ -7,6 +7,7 @@ import { MAPS } from "./world.js";
 import { SCROLLS } from "./scrolls.js";
 import { ENEMIES } from "./battle.js";
 import { ADMIN, ADMIN_ORDER } from "./admin.js";
+import { isTouch } from "./controls.js";
 import { paintSmith, paintCobra, paintKnight, paintForge, paintAnvil, paintRune, paintWildsTile } from "./art.js";
 
 export const TILE = 40;
@@ -1049,7 +1050,13 @@ export class Game {
     c.font = 'bold 12px "Trebuchet MS", sans-serif';
     c.textAlign = "center";
     c.textBaseline = "middle";
-    c.fillText("J", cx, cy + 1);
+    // phones have no J key: show a speech bubble that matches the TALK button
+    if (isTouch()) {
+      c.font = `11px ${EMOJI_FONT}`;
+      c.fillText("💬", cx, cy + 1);
+    } else {
+      c.fillText("J", cx, cy + 1);
+    }
   }
 
   drawPlayer() {

@@ -56,12 +56,12 @@ export default function TitleScreen({ hasSave, onStart }) {
             {hasSave ? "New game" : "▶ Start adventure"}
           </button>
         </div>
-        <p className="press-enter">press enter</p>
+        <p className="press-enter only-keys">press enter</p>
       </div>
       <p className="title-controls only-keys">
         <kbd>WASD</kbd> walk · <kbd>J</kbd> talk · <kbd>K</kbd> zap · <kbd>L</kbd> journal
       </p>
-      <p className="title-controls only-touch">Tap the on-screen buttons to walk, talk and zap</p>
+      <p className="title-controls only-touch">🕹️ joystick to walk · 💬 Talk · ✨ Zap · 📜 Journal</p>
     </div>
   );
 }
@@ -109,8 +109,8 @@ function TitleScene() {
 
     function castle(t) {
       const base = h * 0.74;
-      const x0 = w * 0.6;
-      const u = h / 140; // castle scale unit
+      const u = Math.min(h / 140, w / 120); // castle scale unit
+      const x0 = Math.min(w * 0.6, w - 60 * u);
       c.fillStyle = "#150d29";
       // walls and towers: [x, width, height]
       const parts = [[0, 34, 16], [6, 6, 30], [24, 6, 30], [12, 10, 40], [34, 22, 12], [44, 6, 24], [-8, 8, 20]];
@@ -174,7 +174,7 @@ function TitleScene() {
       }
 
       // moon with halo
-      const mx = w * 0.82, my = h * 0.2, mr = h * 0.07;
+      const mx = w * 0.82, my = h * (h > w ? 0.1 : 0.2), mr = Math.min(h * 0.07, w * 0.11);
       const halo = c.createRadialGradient(mx, my, mr * 0.5, mx, my, mr * 4);
       halo.addColorStop(0, "rgba(255, 228, 170, .35)");
       halo.addColorStop(1, "rgba(255, 228, 170, 0)");
@@ -197,14 +197,16 @@ function TitleScene() {
       hill("#0c0818", 0.9, 0.025, 1.6, 4);
 
       // rising glyphs
+      // phones get fewer, fainter glyphs so they don't cover the title
+      const narrow = w < 600;
       c.textAlign = "center";
-      for (let i = 0; i < glyphs.length; i++) {
+      for (let i = 0; i < (narrow ? 7 : glyphs.length); i++) {
         const g = glyphs[i];
         if (!reduce) g.y -= g.v * dt;
         if (g.y < 0.08) glyphs[i] = newGlyph(false);
         const fade = Math.min(1, (1.05 - g.y) * 3) * Math.min(1, (g.y - 0.08) * 4);
-        c.globalAlpha = Math.max(0, fade) * 0.75;
-        c.font = `600 ${g.size}px "Cascadia Code", Consolas, monospace`;
+        c.globalAlpha = Math.max(0, fade) * (narrow ? 0.4 : 0.75);
+        c.font = `600 ${narrow ? g.size * 0.85 : g.size}px "Cascadia Code", Consolas, monospace`;
         c.fillStyle = g.gold ? "#ffd77a" : "#9fd2ff";
         c.shadowColor = g.gold ? "#f4c95d" : "#6fb3ef";
         c.shadowBlur = 12 * dpr;
@@ -228,7 +230,7 @@ function TitleScene() {
       c.shadowBlur = 0;
 
       // hero vs cobra, standing on the front hill
-      const k = Math.max(1.4, h / 230);
+      const k = Math.max(1.4, Math.min(h / 230, w / 180));
       const groundY = h * 0.9;
       c.setTransform(dpr * k, 0, 0, dpr * k, w * 0.13 * dpr, (groundY - 16 * k) * dpr);
       c.fillStyle = "rgba(0,0,0,.35)";

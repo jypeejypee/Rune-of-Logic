@@ -7,6 +7,7 @@ import { expToNext } from "./game/battle.js";
 import BattleScreen from "./BattleScreen.jsx";
 import TitleScreen from "./TitleScreen.jsx";
 import TouchPad from "./TouchPad.jsx";
+import { forDevice } from "./game/controls.js";
 
 // localStorage key — your progress is saved in the browser under this name.
 const SAVE_KEY = "rune-of-logic-rpg-v2";
@@ -117,14 +118,14 @@ export default function App() {
         <div className="title">⚔️ Rune of Logic</div>
         {s && <Hud s={s} />}
         <div className="header-btns">
-          {s && <button className="link-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => setJournal(true)}>📜 Journal (L)</button>}
+          {s && <button className="link-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => setJournal(true)}>📜 Journal<span className="only-keys-inline"> (L)</span></button>}
           <button className="link-btn danger" onMouseDown={(e) => e.preventDefault()} onClick={resetGame}>↺ Reset</button>
         </div>
       </header>
 
       {s && (
         <div className="objective">
-          <span className="obj-label">QUEST</span> {objective(s)}
+          <span className="obj-label">QUEST</span> {forDevice(objective(s))}
         </div>
       )}
 
@@ -132,7 +133,7 @@ export default function App() {
         <div className="stage">
           <canvas ref={canvasRef} width={COLS * TILE} height={ROWS * TILE} className="screen" />
           {banner && <div className="banner" key={banner}>{banner}</div>}
-          {toast && <div className="toast">{toast}</div>}
+          {toast && <div className="toast">{forDevice(toast)}</div>}
           {dialog && dialog.type !== "assemble" && <DialogBox dialog={dialog} onAnswer={answer} />}
           {dialog && dialog.type === "assemble" && <AssembleBox dialog={dialog} onAnswer={answer} />}
           {!started && <TitleScreen hasSave={hasSave.current} onStart={begin} />}
@@ -197,7 +198,7 @@ function Hud({ s }) {
 // ---------------------------------------------------------------------
 function DialogBox({ dialog, onAnswer }) {
   const [shown, setShown] = useState(0);
-  const full = dialog.text || "";
+  const full = forDevice(dialog.text || "");
   const done = shown >= full.length;
 
   useEffect(() => {
@@ -404,11 +405,11 @@ function Journal({ s, onClose }) {
         <h2>📜 Journal</h2>
         <div className="scroll-card quest">
           <div className="scroll-title">Current quest</div>
-          <p>{objective(s)}</p>
+          <p>{forDevice(objective(s))}</p>
         </div>
         <h3 className="j-head">📋 Lessons read ({Object.keys(LESSONS).filter((id) => s.flags["read:" + id]).length}/{Object.keys(LESSONS).length})</h3>
         {Object.keys(LESSONS).filter((id) => s.flags["read:" + id]).length === 0 && (
-          <p className="empty">No lessons yet. Look for notice boards 📋 with a yellow "!" and press J.</p>
+          <p className="empty">{forDevice('No lessons yet. Look for notice boards 📋 with a yellow "!" and press J.')}</p>
         )}
         {Object.entries(LESSONS).filter(([id]) => s.flags["read:" + id]).map(([id, L]) => (
           <details className="lesson" key={id}>
@@ -430,7 +431,7 @@ function Journal({ s, onClose }) {
           </div>
         ))}
         <p className="muted small">Want to practise for real? Open the <b>java-lab</b> folder — each area has a real Java file to run and modify.</p>
-        <button className="btn" onMouseDown={(e) => e.preventDefault()} onClick={onClose}>Close (L)</button>
+        <button className="btn" onMouseDown={(e) => e.preventDefault()} onClick={onClose}>Close<span className="only-keys-inline"> (L)</span></button>
       </div>
     </div>
   );
