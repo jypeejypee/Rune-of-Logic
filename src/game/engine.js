@@ -7,7 +7,7 @@ import { MAPS } from "./world.js";
 import { SCROLLS } from "./scrolls.js";
 import { ENEMIES } from "./battle.js";
 import { ADMIN, ADMIN_ORDER } from "./admin.js";
-import { paintSmith, paintCobra, paintForge, paintAnvil, paintRune, paintWildsTile } from "./art.js";
+import { paintSmith, paintCobra, paintKnight, paintForge, paintAnvil, paintRune, paintWildsTile } from "./art.js";
 
 export const TILE = 40;
 export const COLS = 20;
@@ -972,6 +972,7 @@ export class Game {
           c.globalAlpha = 0.5;
         }
         if (e.sprite === "cobra") paintCobra(c, cx, cy, this.time + e.x);
+        else if (e.sprite === "knight") paintKnight(c, cx, cy - 2, this.time, e.x * 1.7);
         else this.emoji(e.emoji, cx + wiggle, cy, 28);
         c.globalAlpha = 1;
         break;

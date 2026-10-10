@@ -5,6 +5,7 @@ import { SCROLLS } from "./game/scrolls.js";
 import { LESSONS } from "./game/lessons.js";
 import { expToNext } from "./game/battle.js";
 import BattleScreen from "./BattleScreen.jsx";
+import TitleScreen from "./TitleScreen.jsx";
 
 // localStorage key — your progress is saved in the browser under this name.
 const SAVE_KEY = "rune-of-logic-rpg-v2";
@@ -126,7 +127,7 @@ export default function App() {
         </div>
       )}
 
-      <div className="layout">
+      <div className={`layout ${started ? "" : "pre-start"}`}>
         <div className="stage">
           <canvas ref={canvasRef} width={COLS * TILE} height={ROWS * TILE} className="screen" />
           {banner && <div className="banner" key={banner}>{banner}</div>}
@@ -183,36 +184,6 @@ function Hud({ s }) {
           ✨ zap({s.learned.args ? s.power : 1}) → {(s.learned.args ? s.power : 1) * 2}
         </span>
       )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------
-function TitleScreen({ hasSave, onStart }) {
-  return (
-    <div className="overlay title-screen">
-      <div className="title-card">
-        <div className="title-emoji">🍥✨🐛</div>
-        <h1>Rune of Logic</h1>
-        <p className="tagline">Chapter 1: The Encapsulated Kingdom</p>
-        <p className="tagline">A tiny RPG where Java is magic.</p>
-        <p>
-          Build spells out of <b>methods</b>. Open gates with <b>arguments</b>.
-          Light lanterns to learn <b>static</b>. Guard a vault with <b>encapsulation</b>.
-          Then defeat <b>The Leaky Class</b>.
-        </p>
-        <div className="row center">
-          {hasSave && (
-            <button className="btn primary" onMouseDown={(e) => e.preventDefault()} onClick={() => onStart(false)}>
-              ▶ Continue
-            </button>
-          )}
-          <button className={`btn ${hasSave ? "" : "primary"}`} onMouseDown={(e) => e.preventDefault()} onClick={() => onStart(true)}>
-            {hasSave ? "New game" : "▶ Start adventure"}
-          </button>
-        </div>
-        <p className="small-print">Arrows/WASD to walk · J to talk · K to zap · L for journal</p>
-      </div>
     </div>
   );
 }

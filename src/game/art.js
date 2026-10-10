@@ -573,3 +573,125 @@ export function paintWildsTile(c, ch, x, y, tile, hash, time) {
       return false;
   }
 }
+
+// ---------------------------------------------------------------------
+//  The Null Knight (Method Village bridge guard): great helm with a
+//  glowing visor, blue tabard with a white lion, longsword planted
+//  point-down. Animated: breathing, visor glow, a glint along the blade.
+// ---------------------------------------------------------------------
+export function paintKnight(c, cx, cy, time, phase = 0) {
+  const OUT = "#0f1115";
+  const STEEL = "#7d828a";
+  const STEEL_D = "#4a4e55";
+  const STEEL_L = "#c3c8cf";
+  const BLUE = "#21437a";
+  const BLUE_D = "#152b50";
+  const TRIM = "#d7dbe0";
+  const LEATHER = "#4a3524";
+  const t = time + phase;
+  const breathe = Math.sin(t * 2) * 0.8;
+  c.lineWidth = 1.2;
+  c.strokeStyle = OUT;
+  c.lineJoin = "round";
+
+  c.fillStyle = "rgba(0,0,0,.35)";
+  ellipse(c, cx, cy + 17, 14, 4);
+  c.fill();
+
+  // greaves + sabatons
+  c.fillStyle = STEEL_D;
+  c.fillRect(cx - 6, cy + 8, 5, 8);
+  c.fillRect(cx + 1, cy + 8, 5, 8);
+  c.fillStyle = STEEL;
+  c.fillRect(cx - 7, cy + 14, 7, 3);
+  c.fillRect(cx + 1, cy + 14, 7, 3);
+
+  // tabard (with a swaying hem)
+  const sway = Math.sin(t * 1.6) * 0.8;
+  c.fillStyle = BLUE;
+  c.beginPath();
+  c.moveTo(cx - 8, cy - 6 + breathe);
+  c.lineTo(cx + 8, cy - 6 + breathe);
+  c.lineTo(cx + 7 + sway, cy + 11);
+  c.lineTo(cx - 7 + sway, cy + 11);
+  c.closePath();
+  c.fill();
+  c.stroke();
+  c.fillStyle = BLUE_D;
+  c.fillRect(cx - 1 + sway * 0.5, cy + 2, 2, 9);
+  c.fillStyle = TRIM; // dentil hem
+  for (let i = 0; i < 4; i++) c.fillRect(cx - 6 + i * 3.6 + sway, cy + 9, 2, 2);
+  // white lion emblem (a tiny rampant shape)
+  c.fillStyle = TRIM;
+  c.fillRect(cx - 2, cy - 3 + breathe, 4, 4);
+  c.fillRect(cx - 3, cy - 4 + breathe, 2, 2);
+  c.fillRect(cx + 1, cy + 1 + breathe, 2, 2);
+  // belt
+  c.fillStyle = LEATHER;
+  c.fillRect(cx - 8, cy + 1 + breathe, 16, 2.5);
+  c.fillStyle = "#b08d4a";
+  c.fillRect(cx - 1, cy + 1 + breathe, 2, 2.5);
+
+  // longsword planted point-down, hands on the pommel
+  const sx = cx - 12;
+  c.fillStyle = STEEL_L;
+  c.fillRect(sx - 1.5, cy - 2, 3, 18);
+  c.strokeRect(sx - 1.5, cy - 2, 3, 18);
+  c.fillStyle = STEEL_D;
+  c.fillRect(sx - 6, cy - 4, 12, 2.2);
+  c.fillStyle = LEATHER;
+  c.fillRect(sx - 1, cy - 9, 2, 5);
+  c.fillStyle = STEEL;
+  ellipse(c, sx, cy - 10, 1.8, 1.8);
+  c.fill();
+  const g = (t * 0.6) % 2.5; // glint sliding down the blade
+  if (g < 1) {
+    c.fillStyle = `rgba(255,255,255,${0.9 * (1 - Math.abs(g - 0.5) * 2)})`;
+    c.fillRect(sx - 1, cy - 1 + g * 16, 2, 3);
+  }
+
+  // arms: left gauntlet on the sword grip, right arm at the side
+  c.fillStyle = STEEL_D;
+  c.fillRect(cx - 12, cy - 5 + breathe, 5, 6);
+  c.strokeRect(cx - 12, cy - 5 + breathe, 5, 6);
+  c.fillStyle = STEEL;
+  c.fillRect(sx - 2.5, cy - 8, 5, 3.5);
+  c.fillStyle = STEEL_D;
+  c.fillRect(cx + 8, cy - 4 + breathe, 4, 10);
+  c.strokeRect(cx + 8, cy - 4 + breathe, 4, 10);
+  c.fillStyle = STEEL;
+  c.fillRect(cx + 8, cy + 5 + breathe, 4, 3);
+
+  // pauldrons
+  for (const side of [-1, 1]) {
+    c.fillStyle = STEEL;
+    ellipse(c, cx + side * 8, cy - 6 + breathe, 5, 4);
+    c.fill();
+    c.stroke();
+    c.fillStyle = STEEL_L;
+    c.fillRect(cx + side * 8 - 2, cy - 8 + breathe, 3, 1.2);
+  }
+
+  // great helm
+  const hy = cy - 13 + breathe;
+  c.fillStyle = STEEL;
+  c.beginPath();
+  c.moveTo(cx - 6, hy + 6);
+  c.lineTo(cx - 6, hy - 3);
+  c.quadraticCurveTo(cx, hy - 10, cx + 6, hy - 3);
+  c.lineTo(cx + 6, hy + 6);
+  c.closePath();
+  c.fill();
+  c.stroke();
+  c.fillStyle = STEEL_L;
+  c.fillRect(cx - 0.6, hy - 7, 1.2, 12);
+  c.fillStyle = "#0b0d12";
+  c.fillRect(cx - 5, hy - 1, 10, 2);
+  const glow = 0.45 + Math.sin(t * 3) * 0.3;
+  c.fillStyle = `rgba(140,200,255,${glow})`;
+  c.fillRect(cx - 3.5, hy - 0.5, 2, 1);
+  c.fillRect(cx + 1.5, hy - 0.5, 2, 1);
+  c.fillStyle = "#2a2d33";
+  for (let i = 0; i < 3; i++) c.fillRect(cx + 2 + i * 1.3, hy + 3, 0.8, 0.8);
+  c.lineWidth = 1;
+}

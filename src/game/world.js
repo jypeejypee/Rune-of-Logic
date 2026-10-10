@@ -211,7 +211,7 @@ async function tamsin(api) {
     await api.say(who, "A method is a named block of instructions. Look at its shape:", "public int add(int a, int b) {\n    return a + b;\n}");
     await api.say(who, "'public' is the access modifier.\n'int' is the RETURN TYPE — what the method hands back.\n'add' is its NAME.\n'(int a, int b)' are its PARAMETERS.\nThe body lives between the { braces }.");
     await api.say(who, "A method that promises 'int' MUST return an int. A method that says 'void' returns nothing at all. Break that promise and the compiler refuses you.");
-    await api.say(who, "Now listen. The bridge east is choked with Bugs. You need a SPELL — and in this kingdom, a spell is just a method.");
+    await api.say(who, "Now listen. The bridge east is held by two NULL KNIGHTS, cursed guards who answer to the Leaky Class. You need a SPELL — and in this kingdom, a spell is just a method.");
     await api.say(who, "📜 YOUR QUEST: my zap spell blew apart in last night's storm. Six glowing fragments ✦ are scattered around the village. Five belong to the spell. One of them is a liar.");
     await api.say(who, "Walk over them to pick them up, then bring them to the Compiler Stone 🗿 just east of here. Put them in order:\n\nmodifier → return type → name → (parameters) → { body }\n\nThen use your spell to clear the bridge, and come back to me for your trial.");
     api.flag("metTamsin");
@@ -225,7 +225,7 @@ async function tamsin(api) {
     return;
   }
   if (!(s.flags["dead:bb1"] && s.flags["dead:bb2"])) {
-    await api.say(who, "Well? Walk into the Bugs on the bridge (or zap them with K for a first strike) to battle them.\n\nIn battle, every attack is a question. Answer right and you hit. Read the notice boards 📋 first if you're unsure!\n\nCome back when the bridge is clear.");
+    await api.say(who, "Well? Walk up to the Null Knights on the bridge (or zap them with K for a first strike) to battle them.\n\nIn battle, every attack is a question. Answer right and you hit. Read the notice boards 📋 first if you're unsure!\n\nCome back when the bridge is clear.");
     return;
   }
   if (!s.flags["trial:methods"]) {
@@ -331,7 +331,7 @@ async function compilerStone(api) {
   s.fragments = [];
   api.log("BUILD SUCCESSFUL — method Hero.zap(int) added", "ok");
   await api.say(who, "BUILD SUCCESSFUL.\n\nThe fragments fuse into light and sink into your hand.", ZAP_CODE);
-  await api.say("✨ New ability", "Press K to cast zap(1) at an enemy for a FIRST STRIKE before battle.\n\nIn battle, ✨ Magic casts zap() too. The method RETURNS power * 2 — that returned number becomes the damage.\n\nLook at your Hero.java panel: the method is now part of YOU.\n\nNow clear the Bugs off the bridge, then report back to Old Tamsin.");
+  await api.say("✨ New ability", "Press K to cast zap(1) at an enemy for a FIRST STRIKE before battle.\n\nIn battle, ✨ Magic casts zap() too. The method RETURNS power * 2 — that returned number becomes the damage.\n\nLook at your Hero.java panel: the method is now part of YOU.\n\nNow defeat the two Null Knights guarding the bridge, then report back to Old Tamsin.");
 }
 
 async function mochi(api) {
@@ -394,11 +394,11 @@ const village = {
     frag("f_params", 1, 7, "(int power)"),
     frag("f_body", 13, 11, "{ return power * 2; }"),
     ...["bb1", "bb2"].map((id, i) => bug(id, 15 + i, 5, {
-      roam: false, persist: true, enemy: "bug",
+      roam: false, persist: true, enemy: "knight",
       requires: (s) => s.learned.zap,
       onBump: async (api) => {
         if (!api.s.learned.zap) {
-          await api.say("🐛 Bridge Bug", "The Bug hisses: \"NullPointerException!\"\n\nIt won't budge. You'll need a spell. (Talk to Old Tamsin.)");
+          await api.say("⚔️ Null Knight", "The knight lowers his longsword across the bridge. Behind the visor, two cold lights flicker.\n\n\"None shall pass... without a METHOD.\"\n\nYou'll need a spell first. (Talk to Old Tamsin.)");
         }
       },
     })),
@@ -1215,7 +1215,7 @@ export function objective(s) {
   const steps = [
     [f.metTamsin, "Talk to Old Tamsin 👵 — walk up to her and press J."],
     [s.learned.zap, `Collect method fragments ✦ (${s.fragments.length}/6), then compile them at the Compiler Stone 🗿.`],
-    [f["dead:bb1"] && f["dead:bb2"], "Battle the Bugs on the bridge — walk into them (or zap them for a first strike)."],
+    [f["dead:bb1"] && f["dead:bb2"], "Defeat the two Null Knights ⚔️ guarding the bridge: walk into them (or zap them for a first strike)."],
     [f["trial:methods"], "📝 Return to Old Tamsin 👵 and pass her trial."],
     [f.metBrannoc, "Cross the bridge east into the Private Wilds and find Brannoc the Smith at his forge."],
     [f.forge1 && f.forge2 && f.forge3, `Rewrite the 3 Forge Runes 🔶 (${[1, 2, 3].filter((n) => f["forge" + n]).length}/3). Stuck? Read the boards 📋.`],
