@@ -6,6 +6,7 @@ import { LESSONS } from "./game/lessons.js";
 import { expToNext } from "./game/battle.js";
 import BattleScreen from "./BattleScreen.jsx";
 import TitleScreen from "./TitleScreen.jsx";
+import TouchPad from "./TouchPad.jsx";
 
 // localStorage key — your progress is saved in the browser under this name.
 const SAVE_KEY = "rune-of-logic-rpg-v2";
@@ -151,11 +152,13 @@ export default function App() {
           )}
         </div>
 
+        {s && <TouchPad s={s} />}
+
         {s && (
           <aside className="side">
             <HeroJava s={s} />
             <Console log={s.log} />
-            <div className="keys">
+            <div className="keys only-keys">
               <b>Move</b> WASD / arrows · <b>Talk/use</b> J · <b>Zap</b> K
               {s.learned.args && <> · <b>Argument</b> 1 2 3</>} · <b>Journal</b> L
             </div>
@@ -242,7 +245,7 @@ function DialogBox({ dialog, onAnswer }) {
         <pre className={`code ${dialog.style === "error" ? "code-error" : ""}`}>{dialog.code}</pre>
       )}
       <p className="dialog-text">{full.slice(0, shown)}</p>
-      {done && dialog.type === "say" && <div className="next">▼ J / Space</div>}
+      {done && dialog.type === "say" && <div className="next"><span className="only-keys">▼ J / Space</span><span className="only-touch">▼ tap</span></div>}
       {done && dialog.type === "choose" && (
         <div className="choices">
           {dialog.options.map((o, i) => (

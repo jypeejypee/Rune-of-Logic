@@ -58,9 +58,10 @@ export default function TitleScreen({ hasSave, onStart }) {
         </div>
         <p className="press-enter">press enter</p>
       </div>
-      <p className="title-controls">
+      <p className="title-controls only-keys">
         <kbd>WASD</kbd> walk · <kbd>J</kbd> talk · <kbd>K</kbd> zap · <kbd>L</kbd> journal
       </p>
+      <p className="title-controls only-touch">Tap the on-screen buttons to walk, talk and zap</p>
     </div>
   );
 }
@@ -84,7 +85,8 @@ function TitleScene() {
     const flies = Array.from({ length: 14 }, () => ({ x: Math.random(), y: rand(0.7, 0.95), p: rand(0, 7) }));
     const newGlyph = (anywhere) => ({
       t: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
-      x: rand(0.04, 0.96),
+      // keep to the sides so the title stays readable
+      x: Math.random() < 0.5 ? rand(0.03, 0.27) : rand(0.73, 0.97),
       y: anywhere ? rand(0.2, 1) : rand(1, 1.15),
       v: rand(0.018, 0.04),
       size: rand(11, 18),
