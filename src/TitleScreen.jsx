@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { paintNinja } from "./game/engine.js";
 import { paintCobra } from "./game/art.js";
-import { setTrack } from "./game/music.js";
+import { setTrack, whenSoundReady } from "./game/music.js";
 
 // Words of Java that float up from the ground like magic sparks.
 const GLYPHS = ["{ }", "( )", ";", "public", "private", "static", "int", "return", "void", "class", "get()", "=>", "new"];
@@ -18,17 +18,44 @@ export default function TitleScreen({ hasSave, onStart }) {
   // over once you press Continue / New game.
   useEffect(() => setTrack("main"), []);
 
+  // Browsers keep a page silent until the player taps or presses a key, and
+  // after a refresh that first tap would usually be Continue, which skips the
+  // title music. So until sound is allowed, the title asks for one tap first.
+  // Browsers that already allow sound skip this step.
+  const [soundReady, setSoundReady] = useState(false);
+  const shownAt = useRef(0);
+  const wake = () => {
+    shownAt.current = Date.now();
+    setSoundReady(true);
+  };
+  // On phones the sound turns on as the finger touches down, so the buttons
+  // appear under the finger: ignore that same tap landing on Continue.
+  const start = (fresh) => {
+    if (Date.now() - shownAt.current > 400) onStart(fresh);
+  };
+  useEffect(() => whenSoundReady(wake), []);
+  useEffect(() => {
+    if (soundReady) return;
+    window.addEventListener("click", wake);
+    window.addEventListener("keydown", wake);
+    return () => {
+      window.removeEventListener("click", wake);
+      window.removeEventListener("keydown", wake);
+    };
+  }, [soundReady]);
+
   // Enter / Space starts the game (continues if there is a save).
   useEffect(() => {
     function onKey(e) {
+      if (!soundReady) return; // this key press only turns the sound on
       if (e.code === "Enter" || e.code === "Space") {
         e.preventDefault();
-        onStart(!hasSave);
+        start(!hasSave);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [hasSave, onStart]);
+  }, [hasSave, onStart, soundReady]);
 
   const noFocus = (e) => e.preventDefault();
 
@@ -51,17 +78,26 @@ export default function TitleScreen({ hasSave, onStart }) {
             <span key={q.label} className="quest-chip"><span aria-hidden="true">{q.icon}</span>{q.label}</span>
           ))}
         </div>
-        <div className="row center title-actions">
-          {hasSave && (
-            <button className="btn-start" onMouseDown={noFocus} onClick={() => onStart(false)}>
-              ▶ Continue
+        {!soundReady ? (
+          <div className="row center title-actions">
+            <button className="btn-start title-gate" onMouseDown={noFocus}>
+              <span className="only-keys-inline">🔊 Press any key to start</span>
+              <span className="only-touch">🔊 Tap to start</span>
             </button>
-          )}
-          <button className={hasSave ? "btn-start ghost" : "btn-start"} onMouseDown={noFocus} onClick={() => onStart(true)}>
-            {hasSave ? "New game" : "▶ Start adventure"}
-          </button>
-        </div>
-        <p className="press-enter only-keys">press enter</p>
+          </div>
+        ) : (
+          <div className="row center title-actions">
+            {hasSave && (
+              <button className="btn-start" onMouseDown={noFocus} onClick={() => start(false)}>
+                ▶ Continue
+              </button>
+            )}
+            <button className={hasSave ? "btn-start ghost" : "btn-start"} onMouseDown={noFocus} onClick={() => start(true)}>
+              {hasSave ? "New game" : "▶ Start adventure"}
+            </button>
+          </div>
+        )}
+        {soundReady && <p className="press-enter only-keys">press enter</p>}
       </div>
       <p className="title-controls only-keys">
         <kbd>WASD</kbd> walk · <kbd>J</kbd> talk · <kbd>K</kbd> zap · <kbd>L</kbd> journal

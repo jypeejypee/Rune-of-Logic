@@ -272,6 +272,19 @@ export function playGameOver() {
   drone.stop(t0 + 3.7);
 }
 
+// Calls `cb` once sound is allowed to play (right away if it already is).
+// Returns a function that cancels the wait.
+export function whenSoundReady(cb) {
+  const c = ensureContext();
+  if (!c || c.state === "running") {
+    cb();
+    return () => {};
+  }
+  const check = () => c.state === "running" && cb();
+  c.addEventListener("statechange", check);
+  return () => c.removeEventListener("statechange", check);
+}
+
 export function isMuted() {
   return muted;
 }
