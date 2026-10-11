@@ -33,7 +33,7 @@
 
 import { SCROLLS } from "./scrolls.js";
 import { ENEMIES } from "./battle.js";
-import { LESSONS } from "./lessons.js";
+import { LESSONS, reviewHint } from "./lessons.js";
 import { EXAM } from "./exam.js";
 import { QUESTIONS, CLUE_STONES } from "./questions.js";
 
@@ -149,7 +149,7 @@ async function trial(api, who, key, questions, opts = {}) {
       queue.push(q);
       s.stats.wrong = (s.stats.wrong || 0) + 1;
       api.log(`trial: wrong — "${q.options[order[pick]]}"`, "err");
-      await api.say(who, `❌ Not quite. You picked: ${q.options[order[pick]]}\n\n${q.why}\n\n(I'll ask this one again.)`, undefined, "error");
+      await api.say(who, `❌ Not quite. You picked: ${q.options[order[pick]]}\n\n${q.why}${reviewHint(q)}\n\n(I'll ask this one again.)`, undefined, "error");
     }
   }
   const perfect = total - missed.size;
@@ -352,6 +352,7 @@ async function mochi(api) {
 const village = {
   name: "Method Village",
   theme: "grass",
+  music: "village", // background song (see music.js); maps without one are silent
   tiles: [
     "RRRRRRRRRBBDBBB~~RRR",
     "RRRRRRRRRpppppp~~BDB",
@@ -376,8 +377,10 @@ const village = {
     {
       id: "sign", kind: "obj", x: 8, y: 6, emoji: "🪧", solid: true,
       onUse: (api) => api.say("🪧 Signpost",
-        "WELCOME TO METHOD VILLAGE\n\nArrows / WASD — walk\nJ — talk / use (face it first)\nK — cast a spell (once you know one)\nL — Journal (quests, lessons, scrolls)\n\n📋 Read the NOTICE BOARDS around town — they teach you.\n⚔️ Enemies ask Java questions in battle. Answer right to hit!\n\nThe Hero.java panel shows YOU as a Java object. Watch it change."),
+        "WELCOME TO METHOD VILLAGE\n\nArrows / WASD — walk\nJ — talk / use (face it first)\nK — cast a spell (once you know one)\nL — Journal (quests, lessons, scrolls)\n\n📋 Read the NOTICE BOARDS around town — they teach you.\n🏠 Some houses are open: walk into their door to go inside.\n⚔️ Enemies ask Java questions in battle. Answer right to hit!\n\nThe Hero.java panel shows YOU as a Java object. Watch it change."),
     },
+    door("door_echo", 8, 9, "echo", 9, 11, "🏠 Echo House"),
+    door("door_cottage", 2, 10, "cottage", 9, 11, "🏠 Cottage"),
     board("m1", 3, 3),
     board("m2", 10, 2),
     board("m3", 5, 10),
@@ -1207,7 +1210,177 @@ const boss = {
 };
 
 // =====================================================================
-export const MAPS = { village, plains, spire, castle, boss };
+//  HOUSES — walk into a house door 🚪 to go inside.
+// =====================================================================
+
+// A door on a 'D' tile. Walking into it takes you to `to` (an inside map).
+const door = (id, x, y, to, tx, ty, name) => ({
+  id, kind: "door", x, y, solid: true,
+  tag: () => name,
+  onBump: (api) => api.go(to, tx, ty),
+});
+
+// Every house shares this room: wooden floor, walls, a doorway at the bottom.
+const ROOM = [
+  "WWWWWWWWWWWWWWWWWWWW",
+  "WWWWWWWWWWWWWWWWWWWW",
+  "WWW______________WWW",
+  "WWW______________WWW",
+  "WWW______________WWW",
+  "WWW______________WWW",
+  "WWW______________WWW",
+  "WWW______________WWW",
+  "WWW______________WWW",
+  "WWW______________WWW",
+  "WWW______________WWW",
+  "WWW______________WWW",
+  "WWWWWWWWW_WWWWWWWWWW",
+  "WWWWWWWWWWWWWWWWWWWW",
+];
+const decor = (id, x, y, emoji) => ({ id, kind: "obj", x, y, emoji, solid: true });
+
+// ---------------------------------------------------------------------
+//  ECHO HOUSE — side quest: code after return / a missing return.
+//  It teaches the topics behind two exam questions (lesson "r1").
+// ---------------------------------------------------------------------
+const bellsDone = (s) => [1, 2, 3].filter((n) => s.flags["bell" + n]).length;
+
+async function pell(api) {
+  const { s } = api;
+  const who = "🧔 Pell the Bell-Ringer";
+  api.log("pell.talk();", "cmd");
+  if (!s.flags.metPell) {
+    await api.say(who, "Shh! Listen...\n\n*DONG*\n\nEvery bell in this house is a method. When a bell RETURNS its sound, the bell is finished. Anything after that is never heard. That's why they call this the Echo House.");
+    await api.say(who, "But three of my bells are broken, and Java refuses to build them.\n\n📜 SIDE QUEST: read my notice board 📋 first. Then fix the three bells 🔔. I'll make it worth your while.");
+    api.flag("metPell");
+    return;
+  }
+  if (bellsDone(s) < 3) {
+    await api.say(who, `${bellsDone(s)} of 3 bells fixed. Stuck? The notice board 📋 explains everything.`);
+    return;
+  }
+  if (!s.flags.echoDone) {
+    s.coins += 10;
+    s.bag.push("gem");
+    api.flag("echoDone");
+    api.log("SIDE QUEST DONE: Echo House (+10 coins, +1 gem)", "ok");
+    await api.say(who, "*DONG* ... *DING* ... *DONG*\n\nAll three ring true again! Remember: return gives back the answer AND leaves the method. And every path must return.\n\nHere: 10 coins and a 💎 Gem for your trouble.");
+    api.toast("🏅 Side quest complete: the Echo House");
+    return;
+  }
+  await api.say(who, "Listen to them ring. Lovely, isn't it? Come back whenever you like.");
+}
+
+const BELLS = {
+  1: {
+    prompt: "This bell won't build. Why?",
+    code: "int ring() {\n    return 3;\n    System.out.println(\"ding\");\n}",
+    options: ["The println can never run, because return already left", "It prints ding, then gives back 3", "It gives back 3 and quietly skips the println"],
+    errs: [
+      null,
+      "return leaves the method right away, so the println never gets a turn. Java refuses to build it: error: unreachable statement.",
+      "Java doesn't quietly skip it. Code that can never run is an error: unreachable statement.",
+    ],
+  },
+  2: {
+    prompt: "This bell won't build either. Why?",
+    code: "int sign(int n) {\n    if (n > 0) return 1;\n    else if (n < 0) return -1;\n}",
+    options: ["When n is 0, nothing is returned", "else if is not allowed after return", "-1 is not an int"],
+    errs: [
+      null,
+      "else if after a return is fine. The problem is the path where n is 0: no return happens there. error: missing return statement.",
+      "-1 is an int. The problem is the path where n is 0: no return happens there. error: missing return statement.",
+    ],
+  },
+  3: {
+    prompt: "Fix the second bell. What goes on the empty line?",
+    code: "int sign(int n) {\n    if (n > 0) return 1;\n    else if (n < 0) return -1;\n    ????\n}",
+    options: ["return 0;", "System.out.println(0);", "Nothing, leave it empty"],
+    errs: [
+      null,
+      "println SHOWS 0 on the screen, but it doesn't give anything back. The method still breaks its promise to return an int.",
+      "Empty is the bug we're fixing! When n is 0, there would still be no return.",
+    ],
+  },
+};
+
+const bell = (n, x, y) => ({
+  id: "bell" + n, kind: "obj", x, y, emoji: "🔔", solid: true,
+  tag: (s) => (s.flags["bell" + n] ? "✔ rings" : `Bell ${n}`),
+  onUse: async (api) => {
+    const { s } = api;
+    const who = `🔔 Bell ${n}`;
+    if (s.flags["bell" + n]) {
+      await api.say(who, "*DONG* It rings true.");
+      return;
+    }
+    if (!s.flags.metPell) {
+      await api.say(who, "A silent, cracked bell with Java carved into it. Pell might know what's wrong.");
+      return;
+    }
+    const B = BELLS[n];
+    const order = shuffle(B.options.map((_, i) => i));
+    const pick = order[await api.choose(who, B.prompt, order.map((i) => B.options[i]), B.code)];
+    if (pick !== 0) {
+      await api.error(who, "*clunk* The bell stays silent.", B.errs[pick] + reviewHint({ lesson: "r1" }));
+      return;
+    }
+    s.flags["bell" + n] = true;
+    api.log(`bell ${n} fixed`, "ok");
+    await api.say(who, "*DONG!* The bell rings out, clear and true.");
+    if (bellsDone(s) === 3) api.toast("All 3 bells fixed! Talk to Pell.");
+  },
+});
+
+const echo = {
+  name: "Echo House",
+  theme: "house",
+  music: "village",
+  tiles: ROOM,
+  spawn: { x: 9, y: 11 },
+  entities: () => [
+    { id: "pell", kind: "npc", x: 9, y: 3, emoji: "🧔", name: "Pell", solid: true, onUse: pell },
+    board("r1", 5, 3),
+    bell(1, 6, 7),
+    bell(2, 9, 7),
+    bell(3, 12, 7),
+    decor("echo_candle1", 3, 2, "🕯️"),
+    decor("echo_candle2", 16, 2, "🕯️"),
+    decor("echo_chair", 15, 10, "🪑"),
+    warp(9, 12, "village", 8, 10),
+  ],
+};
+
+// ---------------------------------------------------------------------
+//  COZY COTTAGE — just for fun: no quests, no questions.
+//  (An empty room, ready for whatever you want to put here.)
+// ---------------------------------------------------------------------
+const cottage = {
+  name: "Cozy Cottage",
+  theme: "house",
+  music: "village",
+  tiles: ROOM,
+  spawn: { x: 9, y: 11 },
+  entities: () => [
+    {
+      id: "cottage_bed", kind: "obj", x: 15, y: 3, emoji: "🛏️", solid: true,
+      onUse: async (api) => {
+        api.s.hp = api.s.maxHp;
+        api.s.mp = api.s.maxMp;
+        await api.say("🛏️ Bed", "You flop onto the soft bed and doze off for a moment...\n\nZzz...\n\nYou wake up feeling great. HP and MP fully restored!");
+      },
+    },
+    decor("cottage_fire", 9, 2, "🔥"),
+    decor("cottage_plant1", 3, 2, "🪴"),
+    decor("cottage_plant2", 16, 10, "🪴"),
+    decor("cottage_table", 6, 6, "🪵"),
+    decor("cottage_chair", 7, 6, "🪑"),
+    warp(9, 12, "village", 2, 11),
+  ],
+};
+
+// =====================================================================
+export const MAPS = { village, plains, spire, castle, boss, echo, cottage };
 
 // The objective shown at the top of the screen, worked out from flags.
 export function objective(s) {

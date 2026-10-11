@@ -8,6 +8,7 @@ import BattleScreen from "./BattleScreen.jsx";
 import TitleScreen from "./TitleScreen.jsx";
 import TouchPad from "./TouchPad.jsx";
 import { forDevice } from "./game/controls.js";
+import { setTrack, isMuted, setMuted } from "./game/music.js";
 
 // localStorage key — your progress is saved in the browser under this name.
 const SAVE_KEY = "rune-of-logic-rpg-v2";
@@ -43,6 +44,7 @@ export default function App() {
   const [journal, setJournal] = useState(false);
   const [victory, setVictory] = useState(false);
   const [battle, setBattle] = useState(null);
+  const [musicMuted, setMusicMuted] = useState(isMuted);
   const hasSave = useRef(loadSave() !== null);
 
   blockingRef.current = journal || victory;
@@ -60,6 +62,7 @@ export default function App() {
         new Promise((resolve) => setDialog({ type: "assemble", ...opts, resolve, at: Date.now() })),
       changed: () => setVersion((v) => v + 1),
       save: writeSave,
+      music: setTrack,
       isBlocking: () => blockingRef.current,
       toggleJournal: () => setJournal((j) => !j),
       victory: () => setVictory(true),
@@ -103,6 +106,11 @@ export default function App() {
     r(value);
   }
 
+  function toggleMusic() {
+    setMuted(!musicMuted);
+    setMusicMuted(!musicMuted);
+  }
+
   function resetGame() {
     if (window.confirm("Erase your save and start over?")) {
       localStorage.removeItem(SAVE_KEY);
@@ -118,6 +126,15 @@ export default function App() {
         <div className="title">⚔️ Rune of Logic</div>
         {s && <Hud s={s} />}
         <div className="header-btns">
+          <button
+            className="link-btn"
+            aria-label={musicMuted ? "Turn music on" : "Turn music off"}
+            title={musicMuted ? "Music off" : "Music on"}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={toggleMusic}
+          >
+            {musicMuted ? "🔇" : "🔊"}
+          </button>
           {s && <button className="link-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => setJournal(true)}>📜 Journal<span className="only-keys-inline"> (L)</span></button>}
           <button className="link-btn danger" onMouseDown={(e) => e.preventDefault()} onClick={resetGame}>↺ Reset</button>
         </div>
@@ -153,7 +170,7 @@ export default function App() {
           )}
         </div>
 
-        {s && <TouchPad s={s} />}
+        {s && <TouchPad s={s} muted={musicMuted} onToggleMute={toggleMusic} />}
 
         {s && (
           <aside className="side">
@@ -242,10 +259,11 @@ function DialogBox({ dialog, onAnswer }) {
       }}
     >
       <div className="speaker">{dialog.who}</div>
-      {dialog.code && (
-        <pre className={`code ${dialog.style === "error" ? "code-error" : ""}`}>{dialog.code}</pre>
-      )}
+      {/* Read the explanation first, then the code it introduces. A compile error
+          is the exception: the red error comes first, then why it happened. */}
+      {dialog.code && dialog.style === "error" && <pre className="code code-error">{dialog.code}</pre>}
       <p className="dialog-text">{full.slice(0, shown)}</p>
+      {dialog.code && dialog.style !== "error" && <pre className="code code-after">{dialog.code}</pre>}
       {done && dialog.type === "say" && <div className="next"><span className="only-keys">▼ J / Space</span><span className="only-touch">▼ tap</span></div>}
       {done && dialog.type === "choose" && (
         <div className="choices">

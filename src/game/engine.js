@@ -134,6 +134,8 @@ export class Game {
           g.ui.toast(`📜 New scroll: ${SCROLLS[id].title}  (press L)`);
         }
       },
+      // Move to another map once the current script ends (so the new map's onEnter can run).
+      go: (map, x, y) => { g.pendingWarp = { map, x, y }; },
       hurt: (n) => g.hurt(n, true),
       bossHit: () => { g.bossFlash = 0.6; g.shake = 0.3; },
       victory: () => g.ui.victory(),
@@ -162,6 +164,11 @@ export class Game {
       this.save();
       this.changed();
     }
+    const w = this.pendingWarp;
+    if (w) {
+      this.pendingWarp = null;
+      this.loadMap(w.map, w.x, w.y);
+    }
   }
 
   // ------------------------------------------------------------- maps
@@ -176,6 +183,7 @@ export class Game {
     this.save();
     this.changed();
     this.ui.banner(this.map.name);
+    this.ui.music(this.map.music || null);
     if (this.map.onEnter) this.run(this.map.onEnter);
   }
 
@@ -569,6 +577,23 @@ export class Game {
       }
     };
     const floor = () => {
+      if (theme === "house") {
+        // wooden planks, staggered so it doesn't look like a grid
+        c.fillStyle = "#9a6a3e";
+        c.fillRect(px, py, TILE, TILE);
+        c.fillStyle = "#a8774a";
+        c.fillRect(px, py + 1, TILE, 8);
+        c.fillRect(px, py + 21, TILE, 8);
+        c.strokeStyle = "rgba(60,35,15,.45)";
+        c.beginPath();
+        c.moveTo(px, py + 20.5); c.lineTo(px + TILE, py + 20.5);
+        c.moveTo(px, py + 0.5); c.lineTo(px + TILE, py + 0.5);
+        const off = (y % 2) * 20;
+        c.moveTo(px + off + 0.5, py); c.lineTo(px + off + 0.5, py + 20);
+        c.moveTo(px + ((off + 20) % 40) + 0.5, py + 20); c.lineTo(px + ((off + 20) % 40) + 0.5, py + TILE);
+        c.stroke();
+        return;
+      }
       const pal = {
         spire: ["#4b5675", "#56627f"],
         castle: ["#6d6a73", "#7a7780"],
@@ -792,7 +817,7 @@ export class Game {
         break;
       }
       case "W": {
-        const pal = { spire: "#2f3852", castle: "#4a4750", boss: "#140d1f" }[theme] || "#4a4750";
+        const pal = { spire: "#2f3852", castle: "#4a4750", boss: "#140d1f", house: "#4a2f1d" }[theme] || "#4a4750";
         c.fillStyle = pal;
         c.fillRect(px, py, TILE, TILE);
         c.strokeStyle = "rgba(255,255,255,.08)";
@@ -860,6 +885,8 @@ export class Game {
     }
 
     switch (e.kind) {
+      case "door": // the door is already painted by its 'D' tile
+        break;
       case "forge":
         paintForge(c, cx, cy, this.time, e.lit(this.s));
         break;

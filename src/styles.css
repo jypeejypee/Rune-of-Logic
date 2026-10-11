@@ -105,6 +105,7 @@ body {
   font-size: 13px; line-height: 1.45; overflow-x: auto; white-space: pre; color: #d6e8ff; margin: 0 0 10px;
 }
 .code-error { border-left-color: var(--red); color: #ffc2c8; }
+.code-after { margin: 10px 0 0; }
 
 /* ---- Overlays inside the stage ---- */
 .overlay {
@@ -558,6 +559,8 @@ code { font-family: var(--mono); color: var(--blue); }
 .pad-btn.act span { font-size: 22px; line-height: 1; }
 .pad-btn.act small { font-size: 9.5px; letter-spacing: .5px; text-transform: uppercase; margin-top: 2px; }
 .pad-btn.book { grid-area: 1 / 2; width: 48px; height: 48px; justify-self: center; }
+.pad-btn.sound { grid-area: 1 / 1; width: 40px; height: 40px; justify-self: center; align-self: center; }
+.pad-btn.sound span { font-size: 15px; }
 .pad-btn.book span { font-size: 16px; }
 .pad-btn.book small { display: none; }
 .pad-btn.zap { grid-area: 2 / 1; width: 64px; height: 64px; border-color: rgba(111,179,239,.7); background: rgba(111,179,239,.14); }

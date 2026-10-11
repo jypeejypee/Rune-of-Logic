@@ -31,10 +31,33 @@ export const LESSONS = {
     title: "Calling a method",
     area: "Method Village",
     pages: [
-      { text: "Call a method on an object with a DOT:\n\n    object.method(arguments)",
-        code: "Hero rook = new Hero();\n\nint dmg = rook.zap(3);   // zap returns 6, stored in dmg\nrook.shout();            // void: nothing to store" },
-      { text: "A returned value can be used right where the call is, just like a number:",
-        code: "System.out.println(rook.zap(2) + 1);   // prints 5" },
+      { text: "A method is like a spell in your spellbook.\n\nWRITING the spell doesn't cast it. To make it happen, you CALL it.\n\nHere is the zap spell. It needs a number, and gives back that number times 2:",
+        code: "public int zap(int power) {\n    return power * 2;\n}" },
+      { text: "To call it, write who casts it, a dot, the spell's name, and the number in ( ).\n\nrook is our hero (an object made with  new Hero() ).",
+        code: "rook.zap(3);" },
+      { text: "What happens when you call  rook.zap(3) :\n\n1. The 3 goes into power.\n2. The spell works out power * 2, which is 6.\n3. It gives you back 6." },
+      { text: "To keep the answer, put it in a variable:",
+        code: "int dmg = rook.zap(3);\n\nSystem.out.println(dmg);   // prints 6" },
+      { text: "Where does 'int' go?\n\nWrite int only when you MAKE something: a method or a variable.\n\nWhen you CALL a method, don't write int. Just give it the number.",
+        code: "public int zap(int power)  // make: int ✔\nint dmg = rook.zap(3);     // make: int ✔\n\nrook.zap(3);        // call: no int ✔\nrook.zap(int 3);    // ✘ wrong" },
+      { text: "Some spells give back NOTHING. Their type is void.\n\nJust call them. Always write the ( ), even when they need no number. And don't try to keep the answer: there isn't one.",
+        code: "public void shout() {\n    System.out.println(\"For Codex!\");\n}\n\nrook.shout();          // ✔ For Codex!\nint x = rook.shout();  // ✘" },
+    ],
+  },
+
+  // ---------------------------------------------------------- ECHO HOUSE (inside Method Village)
+  r1: {
+    title: "return leaves the method",
+    area: "Echo House, Method Village",
+    pages: [
+      { text: "'return' does TWO things:\n\n1. It gives back the answer.\n2. It LEAVES the method, right away.",
+        code: "int ring() {\n    return 3;   // give back 3, and leave\n}" },
+      { text: "So any code after return can never run.\n\nJava won't even build it. The error is: unreachable statement.",
+        code: "int ring() {\n    return 3;\n    System.out.println(\"ding\"); // ✘\n}" },
+      { text: "A method that promises int must give back an int EVERY time, whatever happens.\n\nJava checks every path. Here, if n is 0, nothing is returned. The error is: missing return statement.",
+        code: "int sign(int n) {\n    if (n > 0) return 1;\n    else if (n < 0) return -1;\n}   // ✘ n == 0 ?" },
+      { text: "The fix: make sure every path ends with a return.",
+        code: "int sign(int n) {\n    if (n > 0) return 1;\n    else if (n < 0) return -1;\n    return 0;   // ✔ n == 0\n}" },
     ],
   },
 
@@ -229,3 +252,10 @@ export const LESSONS = {
     ],
   },
 };
+
+// A question can name the lesson that teaches it (`lesson: "r1"`). After a
+// wrong answer, this line sends the player back to study it.
+export function reviewHint(q) {
+  const L = q.lesson && LESSONS[q.lesson];
+  return L ? `\n\n📋 Study this: "${L.title}" (${L.area}). Read lessons again any time in your Journal.` : "";
+}

@@ -5,6 +5,7 @@ import {
   enemyDamage, gainExp, expToNext, shuffle,
 } from "./game/battle.js";
 import { CLUE_STONES } from "./game/questions.js";
+import { reviewHint } from "./game/lessons.js";
 
 // =====================================================================
 //  A Final Fantasy style turn-based battle.
@@ -97,7 +98,7 @@ export default function BattleScreen({ battle, s, changed, onDone }) {
           pop("foe", "MISS", "#c9c9d6");
           const stone = q.hard && !s.flags["clue:" + q.topic] ? CLUE_STONES[q.topic] : null;
           const seek = stone ? `\n\n🪨 That was the hardest riddle of ${stone.area}. Stuck? Seek the Clue Stone in ${stone.where}.` : "";
-          await show(`❌ Wrong — your ${cmd === "attack" ? "attack" : "spell"} fizzles!\n\nYou picked: ${picked}\nCorrect:    ${q.options[0]}\n\n${q.why}${seek}`, "error");
+          await show(`❌ Wrong — your ${cmd === "attack" ? "attack" : "spell"} fizzles!\n\nYou picked: ${picked}\nCorrect:    ${q.options[0]}\n\n${q.why}${seek}${reviewHint(q)}`, "error");
         }
         changed();
       } else if (cmd === "item") {

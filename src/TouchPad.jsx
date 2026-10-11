@@ -119,7 +119,7 @@ function Joystick() {
   );
 }
 
-export default function TouchPad({ s }) {
+export default function TouchPad({ s, muted, onToggleMute }) {
   return (
     <div className="touchpad">
       <Joystick />
@@ -135,6 +135,17 @@ export default function TouchPad({ s }) {
           </div>
         )}
         <div className="pad-main">
+          {/* Music on/off lives here too: on phones the header can be hidden behind dialog */}
+          <button
+            type="button"
+            className="pad-btn act sound"
+            aria-label={muted ? "Turn music on" : "Turn music off"}
+            tabIndex={-1}
+            onClick={onToggleMute}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            <span>{muted ? "🔇" : "🔊"}</span>
+          </button>
           <PadButton code="KeyL" className="act book" label="Journal"><span>📜</span><small>Journal</small></PadButton>
           <PadButton code="KeyK" className="act zap" label="Zap"><span>✨</span><small>Zap</small></PadButton>
           <PadButton code="KeyJ" className="act talk" label="Talk / use"><span>💬</span><small>Talk</small></PadButton>
