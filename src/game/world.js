@@ -625,6 +625,7 @@ const rune = (id, x, y) => ({
 const plains = {
   name: "The Private Wilds",
   theme: "wilds",
+  music: "forest",
   tiles: [
     "TTTTTTTTTTTTTTTTTTTT",
     "T.......r..h..TT.TTT",
@@ -657,6 +658,22 @@ const plains = {
     {
       id: "wildsign", kind: "obj", x: 2, y: 6, emoji: "🪧", solid: true,
       onUse: (api) => api.say("🪧 Weathered sign", "THE PRIVATE WILDS\n\nCobras in the grass. Cliffs to the south: take the stone stairs.\n\nThe smith's forge is to the north-west."),
+    },
+    {
+      // Healing well in the middle of the Wilds: refills HP and MP.
+      id: "well", kind: "well", x: 10, y: 5, solid: true,
+      onUse: async (api) => {
+        const s = api.s;
+        const full = s.hp === s.maxHp && s.mp === s.maxMp;
+        s.hp = s.maxHp;
+        s.mp = s.maxMp;
+        api.log("hero.setHp(hero.getMaxHp()); hero.setMp(hero.getMaxMp());", "cmd");
+        api.toast(full ? "💧 You're already at full HP and MP." : "💧 HP and MP fully restored!");
+        await api.say("💧 Healing Well", full
+          ? "The water is cool and clear. You're already at full strength. Come back when you're hurt."
+          : "You drink the cool well water. Your wounds close and your magic flows back.",
+          "hero.setHp(hero.getMaxHp());   // ❤️ full HP\nhero.setMp(hero.getMaxMp());   // 💧 full MP");
+      },
     },
     rune("forge1", 17, 2),
     rune("forge2", 10, 11),

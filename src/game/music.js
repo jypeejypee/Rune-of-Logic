@@ -27,6 +27,13 @@ const TRACKS = {
   // comes back 61.278 s in, so we loop there (longer crossfade: the repeat
   // is close, not exact). Used for fights on maps with `battleMusic`.
   battle: { url: "/music/battle.mp3", loopStart: 0.8, loopEnd: 0.8 + 61.2778 + 0.5, crossfade: 0.5, volume: 0.35 },
+  // These three are whole songs with an ending, followed by a long stretch
+  // of silence in the file. The loop plays the song through to where the
+  // sound stops, then starts it again. Volumes are matched to village.mp3
+  // (these files are quieter, the snake song is louder).
+  main: { url: "/music/main.mp3", loopStart: 0.58, loopEnd: 109.6, crossfade: 0.4, volume: 0.75 }, // title screen
+  forest: { url: "/music/forest.mp3", loopStart: 0.78, loopEnd: 83.65, crossfade: 0.4, volume: 0.85 }, // the Private Wilds
+  snake: { url: "/music/snake.mp3", loopStart: 0.84, loopEnd: 42.8, crossfade: 0.3, volume: 0.45 }, // cobra battles
 };
 
 const MUTE_KEY = "rune-of-logic-music-muted";
@@ -94,8 +101,10 @@ function ensureContext() {
 
 function unlock() {
   const c = ensureContext();
-  if (c && c.state === "suspended" && !document.hidden) c.resume();
-  if (wanted && !current) play(wanted);
+  if (!c || document.hidden) return;
+  const go = () => wanted && !current && play(wanted);
+  if (c.state === "suspended") c.resume().then(go); // play() needs it running
+  else go();
 }
 if (typeof window !== "undefined") {
   window.addEventListener("pointerdown", unlock);
@@ -200,7 +209,10 @@ async function play(name) {
 export function setTrack(name) {
   wanted = name && TRACKS[name] ? name : null;
   if (current?.name === wanted) return;
-  if (!ctx) return; // nothing plays until the first tap (see unlock)
+  // Browsers that remember the player has been here before allow sound
+  // straight away; the rest start it on the first tap (see unlock).
+  if (!ctx && wanted) ensureContext();
+  if (!ctx) return;
   if (!wanted) stopCurrent();
   else play(wanted);
 }

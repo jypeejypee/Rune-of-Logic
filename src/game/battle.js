@@ -14,7 +14,7 @@ export const ENEMIES = {
   beetle: { name: "Syntax Beetle", emoji: "🐞", hp: 10, atk: 3, exp: 10, gold: 3, topic: "params" },
   // `image` = a picture shown in battle (files in /public). `sprite` = how it's drawn on the map.
   cobra:  { name: "Wilds Cobra",   emoji: "🐍", hp: 15, atk: 5, exp: 14, gold: 5, topic: "encap",
-            image: "/sprites/cobra.png", sprite: "cobra" },
+            image: "/sprites/cobra.png", sprite: "cobra", music: "snake" },
   ghost:  { name: "Null Ghost",    emoji: "👻", hp: 14, atk: 4, exp: 14, gold: 5, topic: "static" },
   slime:  { name: "Leak Slime",    emoji: "🦠", hp: 16, atk: 5, exp: 16, gold: 6, topic: "encap" },
   minion: { name: "Leaky Minion",  emoji: "🪲", hp: 14, atk: 5, exp: 14, gold: 5, topic: "all" },

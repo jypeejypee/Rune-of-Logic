@@ -303,10 +303,12 @@ export class Game {
     this.held = [];
     this.run(async () => {
       this.log(`// battle: ${enemy.name}`, "out");
+      // an enemy's own song (e.g. cobras) wins over the map's battle song
       const map = this.map;
-      if (map.battleMusic) this.ui.music(map.battleMusic);
+      const fightSong = enemy.music || map.battleMusic;
+      if (fightSong) this.ui.music(fightSong);
       const result = await this.ui.battle({ enemy, first: firstStrike, theme: this.map.theme });
-      if (map.battleMusic && this.map === map) this.ui.music(map.music || null);
+      if (fightSong && this.map === map) this.ui.music(map.music || null);
       if (result === "win") {
         e.dead = true;
         if (e.persist) this.s.flags["dead:" + e.id] = true;
@@ -902,6 +904,46 @@ export class Game {
       case "anvil":
         paintAnvil(c, cx, cy);
         break;
+      case "well": {
+        // soft blue glow so it reads as "magic water"
+        const glow = c.createRadialGradient(cx, cy + 4, 2, cx, cy + 4, 30);
+        glow.addColorStop(0, `rgba(111,179,239,${0.35 + Math.sin(this.time * 3) * 0.12})`);
+        glow.addColorStop(1, "rgba(111,179,239,0)");
+        c.fillStyle = glow;
+        c.fillRect(cx - 30, cy - 26, 60, 60);
+        shadow(17);
+        c.fillStyle = "#7d8290"; // stone ring
+        c.fillRect(cx - 15, cy, 30, 15);
+        c.fillStyle = "#5c616d";
+        for (let i = 0; i < 3; i++) c.fillRect(cx - 15 + i * 10 + (i % 2) * 2, cy + 7, 1, 8);
+        c.fillRect(cx - 15, cy + 7, 30, 1);
+        c.fillStyle = "#9aa0ad";
+        c.beginPath();
+        c.ellipse(cx, cy, 16, 6, 0, 0, 7);
+        c.fill();
+        c.fillStyle = "#3d7fc4"; // water
+        c.beginPath();
+        c.ellipse(cx, cy, 12, 4, 0, 0, 7);
+        c.fill();
+        c.fillStyle = `rgba(255,255,255,${0.5 + Math.sin(this.time * 4) * 0.3})`;
+        c.fillRect(cx - 5 + Math.sin(this.time * 2) * 3, cy - 1, 4, 1);
+        c.fillStyle = "#6b4a2b"; // posts and roof
+        c.fillRect(cx - 14, cy - 18, 3, 20);
+        c.fillRect(cx + 11, cy - 18, 3, 20);
+        c.fillStyle = "#8a3b2e";
+        c.beginPath();
+        c.moveTo(cx - 19, cy - 15);
+        c.lineTo(cx, cy - 25);
+        c.lineTo(cx + 19, cy - 15);
+        c.closePath();
+        c.fill();
+        c.fillStyle = "#4a3320"; // crank rope + bucket
+        c.fillRect(cx - 11, cy - 15, 22, 2);
+        c.fillRect(cx - 1, cy - 13, 1, 9);
+        c.fillStyle = "#8b6239";
+        c.fillRect(cx - 3, cy - 5, 6, 4);
+        break;
+      }
       case "rune":
         paintRune(c, cx, cy, this.time, e.solved(this.s));
         break;

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { paintNinja } from "./game/engine.js";
 import { paintCobra } from "./game/art.js";
+import { setTrack } from "./game/music.js";
 
 // Words of Java that float up from the ground like magic sparks.
 const GLYPHS = ["{ }", "( )", ";", "public", "private", "static", "int", "return", "void", "class", "get()", "=>", "new"];
@@ -13,6 +14,10 @@ const QUESTS = [
 ];
 
 export default function TitleScreen({ hasSave, onStart }) {
+  // The main theme plays on the title screen; the first map's song takes
+  // over once you press Continue / New game.
+  useEffect(() => setTrack("main"), []);
+
   // Enter / Space starts the game (continues if there is a save).
   useEffect(() => {
     function onKey(e) {
