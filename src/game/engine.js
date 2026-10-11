@@ -344,6 +344,7 @@ export class Game {
     this.shake = Math.max(0, this.shake - dt);
     this.bossFlash = Math.max(0, this.bossFlash - dt);
     this.floats = this.floats.filter((f) => (f.t += dt) < 1);
+    if (this.dead) this.fallT = Math.min(1, (this.fallT || 0) + dt / 0.4);
 
     if (this.paused()) return;
 
@@ -513,11 +514,16 @@ export class Game {
     this.changed();
   }
 
-  async die(api) {
-    await api.say("💀 Crash", "Exception in thread \"main\" HeroDefeatedException: hp == 0\n    at Bug.bite(Bug.java:13)\n\nDon't worry — every programmer crashes. Read the error, then run it again.\n\nYou respawn at the area entrance with full HP.");
-    this.s.hp = this.s.maxHp;
-    this.s.mp = this.s.maxMp;
-    this.loadMap(this.mapId, this.entry.x, this.entry.y);
+  // HP hit 0: the hero falls over, the music stops, and the Game Over
+  // screen takes it from there. Retry starts a brand-new game, so this
+  // never returns.
+  async die() {
+    this.dead = true;
+    this.held = [];
+    this.ui.music(null);
+    this.log("HeroDefeatedException: hp == 0", "err");
+    await new Promise((r) => setTimeout(r, 900)); // let the fall play out
+    await this.ui.gameOver();
   }
 
   playerPos() {
@@ -1094,6 +1100,7 @@ export class Game {
     const pp = this.playerPos();
     const cx = pp.x * TILE + TILE / 2;
     const cy = pp.y * TILE + TILE / 2;
+    if (this.dead) return this.drawFallen(cx, cy);
     const step = this.player.moving ? Math.abs(Math.sin(this.player.t * Math.PI)) * 4 : 0;
     if (this.hurtCd > 0 && Math.floor(this.time * 20) % 2) return;
     c.fillStyle = "rgba(0,0,0,.3)";
@@ -1109,6 +1116,23 @@ export class Game {
     const p = this.player;
     const phase = p.moving ? p.t / 2 + ((p.x + p.y) % 2) * 0.5 : 0;
     this.drawNinja(cx, cy - step, p.dir, phase, p.moving);
+  }
+
+  // The hero topples over sideways (pivoting on the feet) and lies flat.
+  drawFallen(cx, cy) {
+    const c = this.ctx;
+    const k = this.fallT || 0;
+    const ease = 1 - (1 - k) * (1 - k);
+    const footY = cy + 14;
+    c.fillStyle = "rgba(0,0,0,.3)";
+    c.beginPath();
+    c.ellipse(cx, footY, 12 + 6 * ease, 4, 0, 0, 7);
+    c.fill();
+    c.save();
+    c.translate(cx + 14 * ease, footY - 4 * ease); // head falls left; shift so the body stays on its tile
+    c.rotate((-Math.PI / 2) * ease);
+    paintNinja(c, 0, -14, "down", 0, false, 0);
+    c.restore();
   }
 
   drawNinja(cx, cy, dir, phase, moving) {

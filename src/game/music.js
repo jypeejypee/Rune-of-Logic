@@ -205,6 +205,61 @@ export function setTrack(name) {
   else play(wanted);
 }
 
+// The game over tune: a sad "wah, wah, wah, waaah" that slides down
+// half a step at a time, the last note wobbling, over a low drone.
+// It's made from oscillators, so no sound file is needed, and it plays
+// through `master`, so the mute button and volume slider still apply.
+export function playGameOver() {
+  setTrack(null);
+  if (!ensureContext() || ctx.state !== "running") return;
+  const t0 = ctx.currentTime + FADE * 0.5; // let the map song fade first
+  const out = ctx.createGain();
+  out.gain.value = 0.18;
+  out.connect(master);
+
+  const notes = [
+    [392.0, 0.0, 0.42], // G4
+    [370.0, 0.5, 0.42], // F#4
+    [349.2, 1.0, 0.42], // F4
+    [329.6, 1.5, 1.9], //  E4, held
+  ];
+  for (const [freq, at, len] of notes) {
+    const start = t0 + at;
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(freq * 1.03, start); // a little "wah" bend into the note
+    osc.frequency.exponentialRampToValueAtTime(freq, start + 0.12);
+    env.gain.setValueAtTime(0, start);
+    env.gain.linearRampToValueAtTime(1, start + 0.03);
+    env.gain.setValueAtTime(1, start + len - 0.15);
+    env.gain.linearRampToValueAtTime(0, start + len);
+    if (len > 1) {
+      const lfo = ctx.createOscillator(); // wobble on the last note
+      const depth = ctx.createGain();
+      lfo.frequency.value = 6;
+      depth.gain.value = 6;
+      lfo.connect(depth).connect(osc.frequency);
+      lfo.start(start + 0.3);
+      lfo.stop(start + len);
+    }
+    osc.connect(env).connect(out);
+    osc.start(start);
+    osc.stop(start + len + 0.05);
+  }
+
+  const drone = ctx.createOscillator(); // low E under the last note
+  const dEnv = ctx.createGain();
+  drone.type = "triangle";
+  drone.frequency.value = 82.41;
+  dEnv.gain.setValueAtTime(0, t0 + 1.5);
+  dEnv.gain.linearRampToValueAtTime(1.6, t0 + 1.7);
+  dEnv.gain.linearRampToValueAtTime(0, t0 + 3.6);
+  drone.connect(dEnv).connect(out);
+  drone.start(t0 + 1.5);
+  drone.stop(t0 + 3.7);
+}
+
 export function isMuted() {
   return muted;
 }

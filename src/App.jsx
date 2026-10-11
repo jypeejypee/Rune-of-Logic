@@ -8,7 +8,7 @@ import BattleScreen from "./BattleScreen.jsx";
 import TitleScreen from "./TitleScreen.jsx";
 import TouchPad from "./TouchPad.jsx";
 import { forDevice } from "./game/controls.js";
-import { setTrack, isMuted, setMuted, getVolume, setVolume } from "./game/music.js";
+import { setTrack, isMuted, setMuted, getVolume, setVolume, playGameOver } from "./game/music.js";
 
 // localStorage key — your progress is saved in the browser under this name.
 const SAVE_KEY = "rune-of-logic-rpg-v2";
@@ -44,6 +44,7 @@ export default function App() {
   const [journal, setJournal] = useState(false);
   const [victory, setVictory] = useState(false);
   const [battle, setBattle] = useState(null);
+  const [gameOver, setGameOver] = useState(false);
   const [musicMuted, setMusicMuted] = useState(isMuted);
   const [musicVolume, setMusicVolume] = useState(getVolume);
   const hasSave = useRef(loadSave() !== null);
@@ -67,6 +68,12 @@ export default function App() {
       isBlocking: () => blockingRef.current,
       toggleJournal: () => setJournal((j) => !j),
       victory: () => setVictory(true),
+      // Never resolves: Retry throws this game away and starts a new one.
+      gameOver: () =>
+        new Promise(() => {
+          setGameOver(true);
+          playGameOver();
+        }),
       battle: (opts) => new Promise((resolve) => setBattle({ ...opts, resolve })),
       banner: (name) => {
         setBanner(name);
@@ -122,6 +129,22 @@ export default function App() {
     }
   }
 
+  // Game Over → Retry: erase the save and start again from the very beginning.
+  function retry() {
+    try {
+      localStorage.removeItem(SAVE_KEY);
+    } catch (e) {
+      /* storage blocked: there's no save to erase */
+    }
+    gameRef.current?.stop();
+    setGameOver(false);
+    setDialog(null);
+    setBattle(null);
+    setJournal(false);
+    setVictory(false);
+    begin(true);
+  }
+
   function resetGame() {
     if (window.confirm("Erase your save and start over?")) {
       localStorage.removeItem(SAVE_KEY);
@@ -163,7 +186,7 @@ export default function App() {
               onPointerUp={(e) => e.currentTarget.blur()}
             />
           </div>
-          {s && <button className="link-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => setJournal(true)}>📜 Journal<span className="only-keys-inline"> (L)</span></button>}
+          {s && !gameOver && <button className="link-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => setJournal(true)}>📜 Journal<span className="only-keys-inline"> (L)</span></button>}
           <button className="link-btn danger" onMouseDown={(e) => e.preventDefault()} onClick={resetGame}>↺ Reset</button>
         </div>
       </header>
@@ -182,8 +205,9 @@ export default function App() {
           {dialog && dialog.type !== "assemble" && <DialogBox dialog={dialog} onAnswer={answer} />}
           {dialog && dialog.type === "assemble" && <AssembleBox dialog={dialog} onAnswer={answer} />}
           {!started && <TitleScreen hasSave={hasSave.current} onStart={begin} />}
-          {journal && s && <Journal s={s} onClose={() => setJournal(false)} />}
+          {journal && s && !gameOver && <Journal s={s} onClose={() => setJournal(false)} />}
           {victory && s && <Victory s={s} onClose={() => setVictory(false)} />}
+          {gameOver && <GameOver onRetry={retry} />}
           {battle && s && (
             <BattleScreen
               battle={battle}
@@ -210,6 +234,23 @@ export default function App() {
             </div>
           </aside>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------
+// See-through in the middle, so the fallen hero shows on the map behind it.
+function GameOver({ onRetry }) {
+  return (
+    <div className="gameover" role="alertdialog" aria-label="Game over">
+      <div className="go-top">
+        <div className="go-title">GAME OVER</div>
+        <code className="go-err">HeroDefeatedException: hp == 0</code>
+      </div>
+      <div className="go-bottom">
+        <p>Every programmer crashes. Your adventure starts again from the beginning.</p>
+        <button className="btn primary go-retry" autoFocus onClick={onRetry}>↻ Retry</button>
       </div>
     </div>
   );

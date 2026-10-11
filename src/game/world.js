@@ -1239,9 +1239,10 @@ const boss = {
 // =====================================================================
 
 // A door on a 'D' tile. Walking into it takes you to `to` (an inside map).
+// `name` only labels the door here in the code; no sign is drawn over it
+// (the house's name shows in the banner once you step inside).
 const door = (id, x, y, to, tx, ty, name) => ({
-  id, kind: "door", x, y, solid: true,
-  tag: () => name,
+  id, kind: "door", x, y, solid: true, name,
   onBump: (api) => api.go(to, tx, ty),
 });
 
