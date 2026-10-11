@@ -61,6 +61,60 @@ export const LESSONS = {
     ],
   },
 
+  // ---------------------------------------------------------- TWIN HOUSE
+  o1: {
+    title: "Same name, different inputs",
+    area: "Twin House, Method Village",
+    pages: [
+      { text: "Two methods can have the SAME name, as long as their inputs are different. This is called OVERLOADING.\n\nJava looks at what you pass in, and picks the method that matches:",
+        code: "void greet(String name) { }\nvoid greet(String name, int n) { }\n\ngreet(\"Rook\");     // the 1st\ngreet(\"Rook\", 3);  // the 2nd" },
+      { text: "If nothing matches exactly, Java picks the closest fit.\n\nIt prefers turning an int into a BIGGER number type (like long) over wrapping it in an Integer object:",
+        code: "void f(long x)    { }\nvoid f(Integer x) { }\n\nf(5);   // the long one runs" },
+      { text: "int... means \"any number of ints\". It's called varargs.\n\nVarargs is Java's LAST choice: an exact match always wins. Only one varargs is allowed, and it must come last.",
+        code: "void go(int... x)     { }\nvoid go(int x, int y) { }\n\ngo(1, 2);     // exact one wins\ngo(1, 2, 3);  // only varargs fits" },
+      { text: "The return type does NOT count.\n\nThese two have the same name AND the same input. For a call like calc(5), Java can't tell which one you mean, so it refuses: method calc(int) is already defined.",
+        code: "int  calc(int a) { return a; }\nlong calc(int a) { return a; } // ✘" },
+    ],
+  },
+
+  // ---------------------------------------------------------- SCRIBE'S HOUSE
+  c1: {
+    title: "What fits in a parameter?",
+    area: "Scribe's House, Method Village",
+    pages: [
+      { text: "The value you pass must FIT the parameter.\n\nA smaller type fits into a bigger one by itself:\nbyte → short → int → long → double",
+        code: "static void heal(double hp) { }\n\nheal(5);   // ✔ 5 becomes 5.0" },
+      { text: "A char is secretly a number! 'A' is 65, 'B' is 66.\n\nSo a char fits into an int parameter, and you get a NUMBER back:",
+        code: "static int next(int x) {\n    return x + 1;\n}\n\nnext('A')   // 66, not 'B'" },
+      { text: "A bigger type won't squeeze into a smaller parameter by itself. Not even a small number: 10 is an int, and an int doesn't fit in a byte.\n\n(byte b = 10; is allowed for a variable, but a method call doesn't make that exception.)",
+        code: "static void take(byte b) { }\n\ntake(10);          // ✘\ntake((byte) 10);   // ✔ cast it" },
+    ],
+  },
+
+  // ---------------------------------------------------------- BOX HOUSE
+  b1: {
+    title: "Sealed boxes and final arrows",
+    area: "Box House, Method Village",
+    pages: [
+      { text: "Integer is the OBJECT version of int.\n\nAn Integer can NEVER change. i++ doesn't change it: it makes a brand-new Integer. So the caller still sees the old one:",
+        code: "static void inc(Integer i) {\n    i++;   // a NEW Integer, here only\n}\n\nInteger n = 10;\ninc(n);   // n is still 10" },
+      { text: "An object variable holds an ARROW pointing to the object.\n\n'final' locks the ARROW: it can't point to another object. But you can still change the object it points to:",
+        code: "final StringBuilder sb =\n    new StringBuilder(\"Hi\");\n\nsb.append(\"!\");   // ✔ now \"Hi!\"\nsb = new StringBuilder(); // ✘" },
+    ],
+  },
+
+  // ---------------------------------------------------------- CALCULATOR'S HOUSE
+  u1: {
+    title: "Use the answer right away",
+    area: "Calculator's House, Method Village",
+    pages: [
+      { text: "You don't have to keep a method's answer in a variable.\n\nA call turns into its answer, so you can use it right away, like a plain number:",
+        code: "static int zap(int power) {\n    return power * 2;\n}\n\nzap(2) + 1          // 4 + 1 = 5\nzap(3) + zap(1)     // 6 + 2 = 8" },
+      { text: "You can even put one call INSIDE another. The inside call runs FIRST, and its answer goes into the outside call:",
+        code: "add(2, add(3, 4))\n// add(3, 4) → 7\n// add(2, 7) → 9\n\nzap(zap(1))\n// zap(1) → 2\n// zap(2) → 4" },
+    ],
+  },
+
   // ---------------------------------------------------------- PARAMETERS
   p1: {
     title: "Parameters vs Arguments",

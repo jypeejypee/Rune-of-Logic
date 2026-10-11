@@ -49,6 +49,11 @@ body {
 }
 .link-btn:hover { color: var(--ink); border-color: var(--gold); }
 .link-btn.danger:hover { color: var(--red); border-color: var(--red); }
+.volume { display: inline-flex; align-items: center; gap: 6px; }
+.volume-slider { width: 80px; accent-color: var(--gold); cursor: pointer; }
+/* phones: a taller slider that a thumb can grab */
+@media (pointer: coarse) { .volume-slider { width: 96px; height: 28px; } }
+@media (max-width: 380px) { .header-btns { flex-wrap: wrap; } }
 
 .objective {
   background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--gold);
@@ -585,6 +590,8 @@ code { font-family: var(--mono); color: var(--blue); }
     position: fixed; left: 8px; right: 8px; top: 8px; bottom: auto; z-index: 30; max-height: 45vh;
     box-shadow: 0 8px 30px rgba(0,0,0,.7);
   }
+  /* a question needs room for all its answers; the controls aren't needed while answering */
+  .dialog.is-choice { max-height: 80vh; }
   .battle-ui { flex-direction: column-reverse; max-height: 62%; }
   .ff-window.status { flex: 0 0 auto; display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; align-items: center; padding: 6px 12px; }
   .ff-window.status .st-name { margin: 0; grid-column: 1 / -1; }

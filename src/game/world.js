@@ -248,24 +248,28 @@ const PARAM_TRIAL = [
   {
     prompt: "What does this print?",
     code: "static void doubleIt(int x) {\n    x = x * 2;\n}\n\nint coins = 5;\ndoubleIt(coins);\nSystem.out.println(coins);",
+    lesson: "p3",
     options: ["5", "10", "0", "It doesn't compile"],
     why: "Java passed a COPY of coins into x. Doubling x changes only the copy, so coins is still 5. Pass-by-value — just like your pockets.",
   },
   {
     prompt: "In the call  add(3, 4)  — what are 3 and 4?",
     code: "static int add(int a, int b) {\n    return a + b;\n}\n\nadd(3, 4);",
+    lesson: "p1",
     options: ["Arguments", "Parameters", "Return types", "Fields"],
     why: "a and b are the PARAMETERS (slots in the definition). 3 and 4 are the ARGUMENTS (real values you pass when you call it).",
   },
   {
     prompt: "Which call compiles?",
     code: "static void open(int code, String word) { ... }",
+    lesson: "p2",
     options: ['open(7, "oak");', 'open("oak", 7);', "open(7);", 'open(7.5, "oak");'],
     why: "Arguments must match the parameters in NUMBER, TYPE and ORDER: first an int, then a String. 7.5 is a double, so it can't go in an int slot.",
   },
   {
     prompt: "What does this print?",
     code: 'static void addGem(ArrayList<String> bag) {\n    bag.add("gem");\n}\n\nArrayList<String> bag = new ArrayList<>();\nbag.add("bread");\naddGem(bag);\nSystem.out.println(bag);',
+    lesson: "p3",
     options: ["[bread, gem]", "[bread]", "[gem]", "[]"],
     why: "The method got a copy of the REFERENCE — an address pointing at the same list. bag.add() changed that one shared list, so the caller sees the gem.",
   },
@@ -275,18 +279,21 @@ const METHOD_TRIAL = [
   {
     prompt: "What is the RETURN TYPE of this method?",
     code: "public double area(double r) {\n    return 3.14 * r * r;\n}",
+    lesson: "m1",
     options: ["double", "area", "public", "(double r)"],
     why: "The return type sits right before the name. 'public' is the access modifier, 'area' is the name, '(double r)' is the parameter list.",
   },
   {
     prompt: "What does this print?",
     code: "static int twice(int n) {\n    return n * 2;\n}\n\nSystem.out.println(twice(4) + 1);",
+    lesson: "u1",
     options: ["9", "8", "5", "41"],
     why: "twice(4) RETURNS 8. That returned value is used right where the call was, so it becomes 8 + 1 = 9.",
   },
   {
     prompt: "Why does this NOT compile?",
     code: "public void hello() {\n    return 5;\n}",
+    lesson: "m2",
     options: [
       "void means it returns nothing, but it tries to return 5",
       "Methods named hello are reserved",
@@ -353,6 +360,7 @@ const village = {
   name: "Method Village",
   theme: "grass",
   music: "village", // background song (see music.js); maps without one are silent
+  battleMusic: "battle", // played during fights on this map, then back to `music`
   tiles: [
     "RRRRRRRRRBBDBBB~~RRR",
     "RRRRRRRRRpppppp~~BDB",
@@ -381,6 +389,10 @@ const village = {
     },
     door("door_echo", 8, 9, "echo", 9, 11, "🏠 Echo House"),
     door("door_cottage", 2, 10, "cottage", 9, 11, "🏠 Cottage"),
+    door("door_twins", 4, 2, "twins", 9, 11, "🏠 Twin House"),
+    door("door_scribe", 13, 8, "scribe", 9, 11, "🏠 Scribe"),
+    door("door_boxes", 11, 0, "boxes", 9, 11, "🏠 Box House"),
+    door("door_calc", 18, 1, "calc", 9, 11, "🏠 Calculator"),
     board("m1", 3, 3),
     board("m2", 10, 2),
     board("m3", 5, 10),
@@ -481,12 +493,14 @@ const FORGE_TRIAL = [
   {
     prompt: "Which keyword makes a field visible ONLY inside its own class?",
     code: "public class Forge {\n    ???? int heat;\n}",
+    lesson: "w2",
     options: ["private", "public", "protected", "static"],
     why: "private: only code inside Forge can touch heat. Everyone else has to use the methods you provide.",
   },
   {
     prompt: "Which is a correct getter for this field?",
     code: "private double price;",
+    lesson: "w3",
     options: [
       "public double getPrice() { return price; }",
       "public void getPrice() { return price; }",
@@ -498,12 +512,14 @@ const FORGE_TRIAL = [
   {
     prompt: "After p.setScore(50), what does p.getScore() return?",
     code: "private int score;\n\npublic void setScore(int score) {\n    score = score;\n}\npublic int getScore() { return score; }",
+    lesson: "w5",
     options: ["0", "50", "Compilation fails", "null"],
     why: "The parameter shadows the field, so score = score copies the parameter onto itself. The field keeps its default, 0. Fix: this.score = score;",
   },
   {
     prompt: "Which setter keeps heat between 0 and 1500?",
     code: "private int heat;",
+    lesson: "w4",
     options: [
       "if (h < 0 || h > 1500) return;\nheat = h;",
       "if (h > 0 && h < 1500) return;\nheat = h;",
@@ -515,6 +531,7 @@ const FORGE_TRIAL = [
   {
     prompt: "What is the main reason to make fields private?",
     code: null,
+    lesson: "w1",
     options: [
       "So the class controls every change and keeps its data valid",
       "So the program runs faster",
@@ -754,12 +771,14 @@ const STATIC_TRIAL = [
   {
     prompt: "After this runs, what are a.lit and Lantern.litCount?",
     code: "Lantern a = new Lantern();\nLantern b = new Lantern();\nb.light();",
+    lesson: "s2",
     options: ["a.lit = false,  litCount = 1", "a.lit = true,  litCount = 1", "a.lit = false,  litCount = 0", "a.lit = true,  litCount = 2"],
     why: "b.light() only changes b's OWN 'lit' — a is a separate object, still false. But litCount is static: one shared number, now 1.",
   },
   {
     prompt: "Inside  static void lightAll()  — can you write  lit = true;  directly?",
     code: "static void lightAll() {\n    lit = true;   // ???\n}",
+    lesson: "s3",
     options: [
       "No — a static method has no object, so which lantern's 'lit'?",
       "Yes — static methods can use any field",
@@ -771,12 +790,14 @@ const STATIC_TRIAL = [
   {
     prompt: "Why can you write  Math.max(3, 9)  without  new Math()?",
     code: "int biggest = Math.max(3, 9);",
+    lesson: "s2",
     options: ["max is a static method — it belongs to the Math class", "Java creates a Math object automatically", "max is a field, not a method", "Math is a keyword"],
     why: "Static methods are called on the CLASS name. No object needed — just like Lantern.lightAll().",
   },
   {
     prompt: "Why is  main  declared static?",
     code: "public static void main(String[] args)",
+    lesson: "s3",
     options: ["So Java can run it before any object exists", "So it can return a value", "So other classes can't call it", "It makes the program faster"],
     why: "When your program starts, there are no objects yet. A static main belongs to the class, so Java can call it immediately. (Java 25+ also allows an instance main, but the classic static form is the standard.)",
   },
@@ -915,12 +936,14 @@ const ENCAP_TRIAL = [
   {
     prompt: "Which modifier hides 'gold' so outside code can't touch it directly?",
     code: "public class Vault {\n    ??? int gold;\n}",
+    lesson: "e1",
     options: ["private", "public", "static", "void"],
     why: "'private' means only code inside the Vault class can see gold. Everyone else must go through methods.",
   },
   {
     prompt: "Which one is a correct GETTER for gold?",
     code: "private int gold;",
+    lesson: "e2",
     options: [
       "public int getGold() { return gold; }",
       "public void getGold() { return gold; }",
@@ -932,12 +955,14 @@ const ENCAP_TRIAL = [
   {
     prompt: "gold starts at 100. What does getGold() return after this?",
     code: "public void setGold(int amount) {\n    if (amount < 0) return;\n    gold = amount;\n}\n\nvault.setGold(-5);\nvault.getGold();",
+    lesson: "e3",
     options: ["100", "-5", "0", "95"],
     why: "The guard sees -5 < 0 and returns early, before 'gold = amount' runs. gold stays 100. That's the whole point of a setter.",
   },
   {
     prompt: "Access modifiers from MOST open to MOST restrictive:",
     code: null,
+    lesson: "e4",
     options: [
       "public → protected → (default) → private",
       "private → protected → public",
@@ -1240,116 +1265,373 @@ const ROOM = [
 const decor = (id, x, y, emoji) => ({ id, kind: "obj", x, y, emoji, solid: true });
 
 // ---------------------------------------------------------------------
-//  ECHO HOUSE — side quest: code after return / a missing return.
-//  It teaches the topics behind two exam questions (lesson "r1").
+//  SIDE QUEST HOUSES — every learning house follows the same recipe:
+//    1. TALK  to the owner: they give you the side quest
+//    2. READ  the notice board 📋 (the lesson, saved to your Journal)
+//    3. SOLVE three small puzzles in the room
+//    4. TALK  to the owner again for a reward
+//  Each house teaches the topic behind some quiz/exam questions; those
+//  questions name the lesson (`lesson: "o1"`), so a wrong answer sends the
+//  player back here to study. Houses are optional: the main quest never
+//  needs them.
 // ---------------------------------------------------------------------
-const bellsDone = (s) => [1, 2, 3].filter((n) => s.flags["bell" + n]).length;
+function sideHouse(h) {
+  const met = h.flags?.met ?? `met:${h.id}`;
+  const piece = (n) => h.flags?.piece?.(n) ?? `${h.id}:${n}`;
+  const done = h.flags?.done ?? `done:${h.id}`;
+  const solved = (s) => h.puzzles.filter((_, i) => s.flags[piece(i + 1)]).length;
+  const total = h.puzzles.length;
+  const who = `${h.owner.emoji} ${h.owner.name}`;
 
-async function pell(api) {
-  const { s } = api;
-  const who = "🧔 Pell the Bell-Ringer";
-  api.log("pell.talk();", "cmd");
-  if (!s.flags.metPell) {
-    await api.say(who, "Shh! Listen...\n\n*DONG*\n\nEvery bell in this house is a method. When a bell RETURNS its sound, the bell is finished. Anything after that is never heard. That's why they call this the Echo House.");
-    await api.say(who, "But three of my bells are broken, and Java refuses to build them.\n\n📜 SIDE QUEST: read my notice board 📋 first. Then fix the three bells 🔔. I'll make it worth your while.");
-    api.flag("metPell");
-    return;
+  async function owner(api) {
+    const { s } = api;
+    api.log(`${h.owner.name.split(" ")[0].toLowerCase()}.talk();`, "cmd");
+    if (!s.flags[met]) {
+      for (const line of h.owner.intro) await api.say(who, line);
+      api.flag(met);
+      return;
+    }
+    if (solved(s) < total) {
+      await api.say(who, `${solved(s)} of ${total} ${h.puzzleName}s solved. Stuck? The notice board 📋 explains everything.`);
+      return;
+    }
+    if (!s.flags[done]) {
+      s.coins += h.reward.coins;
+      if (h.reward.item) s.bag.push(h.reward.item);
+      api.flag(done);
+      api.log(`SIDE QUEST DONE: ${h.name} (+${h.reward.coins} coins${h.reward.item ? `, +1 ${h.reward.item}` : ""})`, "ok");
+      await api.say(who, h.owner.thanks);
+      api.toast(`🏅 Side quest complete: ${h.name}`);
+      return;
+    }
+    await api.say(who, h.owner.after);
   }
-  if (bellsDone(s) < 3) {
-    await api.say(who, `${bellsDone(s)} of 3 bells fixed. Stuck? The notice board 📋 explains everything.`);
-    return;
-  }
-  if (!s.flags.echoDone) {
-    s.coins += 10;
-    s.bag.push("gem");
-    api.flag("echoDone");
-    api.log("SIDE QUEST DONE: Echo House (+10 coins, +1 gem)", "ok");
-    await api.say(who, "*DONG* ... *DING* ... *DONG*\n\nAll three ring true again! Remember: return gives back the answer AND leaves the method. And every path must return.\n\nHere: 10 coins and a 💎 Gem for your trouble.");
-    api.toast("🏅 Side quest complete: the Echo House");
-    return;
-  }
-  await api.say(who, "Listen to them ring. Lovely, isn't it? Come back whenever you like.");
+
+  const puzzle = (P, n, x, y) => ({
+    id: `${h.id}_p${n}`, kind: "obj", x, y, emoji: h.puzzleEmoji, solid: true,
+    tag: (s) => (s.flags[piece(n)] ? `✔ ${h.solvedTag}` : `${h.puzzleLabel} ${n}`),
+    onUse: async (api) => {
+      const { s } = api;
+      const name = `${h.puzzleEmoji} ${h.puzzleLabel} ${n}`;
+      if (s.flags[piece(n)]) {
+        await api.say(name, h.solvedLine);
+        return;
+      }
+      if (!s.flags[met]) {
+        await api.say(name, h.lockedLine);
+        return;
+      }
+      const order = shuffle(P.options.map((_, i) => i));
+      const pick = order[await api.choose(name, P.prompt, order.map((i) => P.options[i]), P.code)];
+      if (pick !== 0) {
+        await api.error(name, h.failLine, P.errs[pick] + reviewHint({ lesson: h.lesson }));
+        return;
+      }
+      s.flags[piece(n)] = true;
+      api.log(`${h.puzzleLabel.toLowerCase()} ${n} solved`, "ok");
+      await api.say(name, h.winLine);
+      if (solved(s) === total) api.toast(`All ${total} ${h.puzzleName}s solved! Talk to ${h.owner.name.split(" ")[0]}.`);
+    },
+  });
+
+  const map = {
+    name: h.name,
+    theme: "house",
+    music: "village",
+    tiles: ROOM,
+    spawn: { x: 9, y: 11 },
+    entities: () => [
+      { id: `${h.id}_owner`, kind: "npc", x: 9, y: 3, emoji: h.owner.emoji, name: h.owner.name, solid: true, onUse: owner },
+      board(h.lesson, 5, 3),
+      ...h.puzzles.map((P, i) => puzzle(P, i + 1, 6 + i * 3, 7)),
+      ...(h.decor || []).map(([emoji, x, y], i) => decor(`${h.id}_decor${i}`, x, y, emoji)),
+      warp(9, 12, "village", h.outside.x, h.outside.y),
+    ],
+  };
+  return map;
 }
 
-const BELLS = {
-  1: {
-    prompt: "This bell won't build. Why?",
-    code: "int ring() {\n    return 3;\n    System.out.println(\"ding\");\n}",
-    options: ["The println can never run, because return already left", "It prints ding, then gives back 3", "It gives back 3 and quietly skips the println"],
-    errs: [
-      null,
-      "return leaves the method right away, so the println never gets a turn. Java refuses to build it: error: unreachable statement.",
-      "Java doesn't quietly skip it. Code that can never run is an error: unreachable statement.",
+// ---------------------------------------------------------------------
+//  ECHO HOUSE — code after return / a missing return path  (lesson r1)
+// ---------------------------------------------------------------------
+const echo = sideHouse({
+  id: "echo", name: "Echo House", lesson: "r1",
+  outside: { x: 8, y: 10 },
+  flags: { met: "metPell", piece: (n) => "bell" + n, done: "echoDone" }, // names from the first version, so saves keep working
+  owner: {
+    name: "Pell the Bell-Ringer", emoji: "🧔",
+    intro: [
+      "Shh! Listen...\n\n*DONG*\n\nEvery bell in this house is a method. When a bell RETURNS its sound, the bell is finished. Anything after that is never heard. That's why they call this the Echo House.",
+      "But three of my bells are broken, and Java refuses to build them.\n\n📜 SIDE QUEST: read my notice board 📋 first. Then fix the three bells 🔔. I'll make it worth your while.",
     ],
+    thanks: "*DONG* ... *DING* ... *DONG*\n\nAll three ring true again! Remember: return gives back the answer AND leaves the method. And every path must return.\n\nHere: 10 coins and a 💎 Gem for your trouble.",
+    after: "Listen to them ring. Lovely, isn't it? Come back whenever you like.",
   },
-  2: {
-    prompt: "This bell won't build either. Why?",
-    code: "int sign(int n) {\n    if (n > 0) return 1;\n    else if (n < 0) return -1;\n}",
-    options: ["When n is 0, nothing is returned", "else if is not allowed after return", "-1 is not an int"],
-    errs: [
-      null,
-      "else if after a return is fine. The problem is the path where n is 0: no return happens there. error: missing return statement.",
-      "-1 is an int. The problem is the path where n is 0: no return happens there. error: missing return statement.",
-    ],
-  },
-  3: {
-    prompt: "Fix the second bell. What goes on the empty line?",
-    code: "int sign(int n) {\n    if (n > 0) return 1;\n    else if (n < 0) return -1;\n    ????\n}",
-    options: ["return 0;", "System.out.println(0);", "Nothing, leave it empty"],
-    errs: [
-      null,
-      "println SHOWS 0 on the screen, but it doesn't give anything back. The method still breaks its promise to return an int.",
-      "Empty is the bug we're fixing! When n is 0, there would still be no return.",
-    ],
-  },
-};
-
-const bell = (n, x, y) => ({
-  id: "bell" + n, kind: "obj", x, y, emoji: "🔔", solid: true,
-  tag: (s) => (s.flags["bell" + n] ? "✔ rings" : `Bell ${n}`),
-  onUse: async (api) => {
-    const { s } = api;
-    const who = `🔔 Bell ${n}`;
-    if (s.flags["bell" + n]) {
-      await api.say(who, "*DONG* It rings true.");
-      return;
-    }
-    if (!s.flags.metPell) {
-      await api.say(who, "A silent, cracked bell with Java carved into it. Pell might know what's wrong.");
-      return;
-    }
-    const B = BELLS[n];
-    const order = shuffle(B.options.map((_, i) => i));
-    const pick = order[await api.choose(who, B.prompt, order.map((i) => B.options[i]), B.code)];
-    if (pick !== 0) {
-      await api.error(who, "*clunk* The bell stays silent.", B.errs[pick] + reviewHint({ lesson: "r1" }));
-      return;
-    }
-    s.flags["bell" + n] = true;
-    api.log(`bell ${n} fixed`, "ok");
-    await api.say(who, "*DONG!* The bell rings out, clear and true.");
-    if (bellsDone(s) === 3) api.toast("All 3 bells fixed! Talk to Pell.");
-  },
+  reward: { coins: 10, item: "gem" },
+  puzzleEmoji: "🔔", puzzleLabel: "Bell", puzzleName: "bell", solvedTag: "rings",
+  lockedLine: "A silent, cracked bell with Java carved into it. Pell might know what's wrong.",
+  solvedLine: "*DONG* It rings true.",
+  failLine: "*clunk* The bell stays silent.",
+  winLine: "*DONG!* The bell rings out, clear and true.",
+  decor: [["🕯️", 3, 2], ["🕯️", 16, 2], ["🪑", 15, 10]],
+  puzzles: [
+    {
+      prompt: "This bell won't build. Why?",
+      code: "int ring() {\n    return 3;\n    System.out.println(\"ding\");\n}",
+      options: ["The println can never run, because return already left", "It prints ding, then gives back 3", "It gives back 3 and quietly skips the println"],
+      errs: [
+        null,
+        "return leaves the method right away, so the println never gets a turn. Java refuses to build it: error: unreachable statement.",
+        "Java doesn't quietly skip it. Code that can never run is an error: unreachable statement.",
+      ],
+    },
+    {
+      prompt: "This bell won't build either. Why?",
+      code: "int sign(int n) {\n    if (n > 0) return 1;\n    else if (n < 0) return -1;\n}",
+      options: ["When n is 0, nothing is returned", "else if is not allowed after return", "-1 is not an int"],
+      errs: [
+        null,
+        "else if after a return is fine. The problem is the path where n is 0: no return happens there. error: missing return statement.",
+        "-1 is an int. The problem is the path where n is 0: no return happens there. error: missing return statement.",
+      ],
+    },
+    {
+      prompt: "Fix the second bell. What goes on the empty line?",
+      code: "int sign(int n) {\n    if (n > 0) return 1;\n    else if (n < 0) return -1;\n    ????\n}",
+      options: ["return 0;", "System.out.println(0);", "Nothing, leave it empty"],
+      errs: [
+        null,
+        "println SHOWS 0 on the screen, but it doesn't give anything back. The method still breaks its promise to return an int.",
+        "Empty is the bug we're fixing! When n is 0, there would still be no return.",
+      ],
+    },
+  ],
 });
 
-const echo = {
-  name: "Echo House",
-  theme: "house",
-  music: "village",
-  tiles: ROOM,
-  spawn: { x: 9, y: 11 },
-  entities: () => [
-    { id: "pell", kind: "npc", x: 9, y: 3, emoji: "🧔", name: "Pell", solid: true, onUse: pell },
-    board("r1", 5, 3),
-    bell(1, 6, 7),
-    bell(2, 9, 7),
-    bell(3, 12, 7),
-    decor("echo_candle1", 3, 2, "🕯️"),
-    decor("echo_candle2", 16, 2, "🕯️"),
-    decor("echo_chair", 15, 10, "🪑"),
-    warp(9, 12, "village", 8, 10),
+// ---------------------------------------------------------------------
+//  TWIN HOUSE — overloading: same name, different inputs  (lesson o1)
+// ---------------------------------------------------------------------
+const twins = sideHouse({
+  id: "twins", name: "Twin House", lesson: "o1",
+  outside: { x: 4, y: 3 },
+  owner: {
+    name: "The Print Twins", emoji: "👬",
+    intro: [
+      "\"Hello! I'm Print.\"\n\"And I'm ALSO Print!\"\n\nWe're twins, and we share the same name. When someone calls \"Print!\", we know which of us they mean by WHAT they hand us.",
+      "\"In Java that's called OVERLOADING: methods with the same name but different inputs.\"\n\n📜 SIDE QUEST: read our notice board 📋, then answer the three riddles in our mirrors 🪞. Get them right and there's a prize!",
+    ],
+    thanks: "\"You got them all!\"\n\"Same name, different inputs. Java picks the one that FITS best.\"\n\"And the return type alone never tells us apart!\"\n\nHere: 10 coins and a 🍞 Bread. Both of us agree.",
+    after: "\"Come again!\" \"...again!\"",
+  },
+  reward: { coins: 10, item: "bread" },
+  puzzleEmoji: "🪞", puzzleLabel: "Mirror", puzzleName: "mirror riddle", solvedTag: "solved",
+  lockedLine: "A mirror with Java written backwards on the glass. Talk to the twins first.",
+  solvedLine: "Your reflection gives you a thumbs-up.",
+  failLine: "The mirror fogs over.",
+  winLine: "The mirror sparkles. Correct!",
+  decor: [["🖼️", 3, 2], ["🖼️", 16, 2], ["🛋️", 15, 10]],
+  puzzles: [
+    {
+      prompt: "Which method runs?",
+      code: "// A\nvoid greet(String name) { ... }\n\n// B\nvoid greet(String name, int n) { ... }\n\ngreet(\"Rook\", 3);",
+      options: ["B, because the call has a String AND an int", "A, because it comes first", "Neither: two methods can't share a name"],
+      errs: [
+        null,
+        "The order you write them in doesn't matter. Java matches the INPUTS: a String and an int fits B.",
+        "They CAN share a name, as long as their inputs are different. That's overloading.",
+      ],
+    },
+    {
+      prompt: "Which method runs?",
+      code: "void f(long x)    { ... }   // A\nvoid f(Integer x) { ... }   // B\n\nf(5);",
+      options: ["A: Java turns the int into a long first", "B: 5 becomes an Integer", "Neither: it doesn't compile"],
+      errs: [
+        null,
+        "Java tries a BIGGER number type (long) before wrapping the int in an Integer object. So A wins.",
+        "It compiles. 5 is an int; Java can widen it to long, so A runs.",
+      ],
+    },
+    {
+      prompt: "Can these two methods live in the same class?",
+      code: "int  calc(int a) { return a; }\nlong calc(int a) { return a; }",
+      options: ["No: their inputs are the same, only the return type differs", "Yes: the return types are different", "Yes, but only if one is static"],
+      errs: [
+        null,
+        "The return type doesn't count. A call like calc(5) gives Java no way to choose. error: method calc(int) is already defined.",
+        "static doesn't help. Both still have the same name and the same input (int a). error: method calc(int) is already defined.",
+      ],
+    },
   ],
-};
+});
+
+// ---------------------------------------------------------------------
+//  SCRIBE'S HOUSE — what fits in a parameter  (lesson c1)
+// ---------------------------------------------------------------------
+const scribe = sideHouse({
+  id: "scribe", name: "Scribe's House", lesson: "c1",
+  outside: { x: 13, y: 9 },
+  owner: {
+    name: "Odo the Scribe", emoji: "✍️",
+    intro: [
+      "Ah, a visitor! Mind the ink.\n\nI copy values into methods all day long. And the first rule of a scribe: the value must FIT the box you write it in.",
+      "A small number fits in a big box. But a big box's worth won't squeeze into a small one. And letters... letters are secretly numbers!\n\n📜 SIDE QUEST: read my notice board 📋, then check the three scrolls 📜 on my desk.",
+    ],
+    thanks: "Splendid! Not a single blot.\n\nSmall fits into big. A char is a number. And a method won't squeeze an int into a byte for you.\n\nTake 10 coins and a 💎 Gem.",
+    after: "Write carefully, apprentice.",
+  },
+  reward: { coins: 10, item: "gem" },
+  puzzleEmoji: "📜", puzzleLabel: "Scroll", puzzleName: "scroll", solvedTag: "checked",
+  lockedLine: "A scroll covered in tiny Java. Odo the Scribe might explain it.",
+  solvedLine: "A neat, correct scroll.",
+  failLine: "A big ink blot spreads over the scroll.",
+  winLine: "The ink dries perfectly. Correct!",
+  decor: [["🕯️", 3, 2], ["📚", 16, 2], ["🪶", 15, 10]],
+  puzzles: [
+    {
+      prompt: "Is this call allowed?",
+      code: "static void heal(double hp) { ... }\n\nheal(5);",
+      options: ["Yes: the int 5 fits into a double (5.0)", "No: you must write 5.0", "No: heal needs a double variable"],
+      errs: [
+        null,
+        "An int fits into a double automatically. Java turns 5 into 5.0 for you.",
+        "Any double VALUE works, and an int fits into a double. You don't need a variable.",
+      ],
+    },
+    {
+      prompt: "What does this print?",
+      code: "static int next(int x) {\n    return x + 1;\n}\n\nSystem.out.println(next('A'));",
+      options: ["66", "B", "A1"],
+      errs: [
+        null,
+        "next takes an int and returns an int, so you get a NUMBER back. 'A' is 65, plus 1 is 66.",
+        "'A' isn't text here. A char is secretly a number: 'A' is 65. 65 + 1 = 66.",
+      ],
+    },
+    {
+      prompt: "Does this compile?",
+      code: "static void take(byte b) { ... }\n\ntake(10);",
+      options: ["No: 10 is an int, and a method won't squeeze an int into a byte", "Yes: 10 is small enough for a byte", "Yes, but it prints 0"],
+      errs: [
+        null,
+        "byte b = 10; works for a VARIABLE, but a method call doesn't make that exception. Fix: take((byte) 10);",
+        "It doesn't compile at all: error: incompatible types: possible lossy conversion from int to byte.",
+      ],
+    },
+  ],
+});
+
+// ---------------------------------------------------------------------
+//  BOX HOUSE — Integer can't change; final locks the arrow  (lesson b1)
+// ---------------------------------------------------------------------
+const boxes = sideHouse({
+  id: "boxes", name: "Box House", lesson: "b1",
+  outside: { x: 11, y: 1 },
+  owner: {
+    name: "Mira the Box-Keeper", emoji: "👩‍🔧",
+    intro: [
+      "Careful, boxes everywhere!\n\nSome of my boxes are SEALED forever: you can't change what's inside, you can only get a new box. Java's Integer works like that.",
+      "And a 'final' label only stops you from swapping which box you're holding. You can still change what's IN the box!\n\n📜 SIDE QUEST: read my notice board 📋, then open the three crates 📦.",
+    ],
+    thanks: "You've got it! An Integer never changes, so i++ makes a new one. And final locks the arrow, not the object.\n\nHere: 10 coins and a 🍞 Bread for your trouble.",
+    after: "Mind the boxes on your way out!",
+  },
+  reward: { coins: 10, item: "bread" },
+  puzzleEmoji: "📦", puzzleLabel: "Crate", puzzleName: "crate", solvedTag: "opened",
+  lockedLine: "A heavy crate with Java stamped on the lid. Mira might know about it.",
+  solvedLine: "An open, empty crate.",
+  failLine: "The lid won't budge.",
+  winLine: "The lid pops open. Correct!",
+  decor: [["📦", 3, 2], ["📦", 16, 2], ["🧰", 15, 10]],
+  puzzles: [
+    {
+      prompt: "What does this print?",
+      code: "static void inc(Integer i) {\n    i++;\n}\n\nInteger n = 10;\ninc(n);\nSystem.out.println(n);",
+      options: ["10", "11", "It doesn't compile"],
+      errs: [
+        null,
+        "An Integer can never change. i++ makes a NEW Integer (11) inside the method only. n still points to 10.",
+        "It compiles fine: i++ works on an Integer. But it makes a new Integer, so n is still 10.",
+      ],
+    },
+    {
+      prompt: "What does this print?",
+      code: "final StringBuilder sb =\n    new StringBuilder(\"Hi\");\nsb.append(\"!\");\nSystem.out.println(sb);",
+      options: ["Hi!", "Hi", "It doesn't compile: sb is final"],
+      errs: [
+        null,
+        "final only stops sb from pointing to a DIFFERENT object. append() changes the same object, so it prints Hi!",
+        "final doesn't freeze the object. append() is allowed. Only  sb = new StringBuilder();  would fail.",
+      ],
+    },
+    {
+      prompt: "Which line does NOT compile?",
+      code: "final StringBuilder sb =\n    new StringBuilder(\"Hi\");",
+      options: ["sb = new StringBuilder(\"Yo\");", "sb.append(\"!\");", "sb.reverse();"],
+      errs: [
+        null,
+        "append() changes the object, and that's allowed. final only blocks pointing sb at a NEW object.",
+        "reverse() changes the object, and that's allowed. final only blocks pointing sb at a NEW object.",
+      ],
+    },
+  ],
+});
+
+// ---------------------------------------------------------------------
+//  CALCULATOR'S HOUSE — use a returned value right away  (lesson u1)
+//  (across the river, so it's reached after the Null Knights)
+// ---------------------------------------------------------------------
+const calc = sideHouse({
+  id: "calc", name: "Calculator's House", lesson: "u1",
+  outside: { x: 18, y: 2 },
+  owner: {
+    name: "Old Cal", emoji: "🧮",
+    intro: [
+      "Numbers, numbers! Come in, come in.\n\nYou know a method call gives back an answer. But did you know you can use that answer RIGHT AWAY, like a plain number?",
+      "You can even put one call inside another! The inside one runs first.\n\n📜 SIDE QUEST: read my notice board 📋, then solve the three sums on my abacuses 🧮.",
+    ],
+    thanks: "Perfect sums! A call turns into its answer, and inner calls go first.\n\nHere: 10 coins and a 💎 Gem.",
+    after: "Keep counting, apprentice!",
+  },
+  reward: { coins: 10, item: "gem" },
+  puzzleEmoji: "🧮", puzzleLabel: "Abacus", puzzleName: "sum", solvedTag: "solved",
+  lockedLine: "An abacus with a Java sum carved on its frame. Old Cal might explain it.",
+  solvedLine: "The beads are neatly lined up.",
+  failLine: "The beads clatter into a mess.",
+  winLine: "The beads click into place. Correct!",
+  decor: [["🔢", 3, 2], ["🔢", 16, 2], ["🪑", 15, 10]],
+  puzzles: [
+    {
+      prompt: "What does this print?",
+      code: "static int zap(int power) {\n    return power * 2;\n}\n\nSystem.out.println(zap(3) + zap(1));",
+      options: ["8", "31", "4"],
+      errs: [
+        null,
+        "The calls aren't text glued together. zap(3) gives back 6 and zap(1) gives back 2. 6 + 2 = 8.",
+        "Both calls run. zap(3) gives back 6, zap(1) gives back 2. 6 + 2 = 8.",
+      ],
+    },
+    {
+      prompt: "What does this give back?",
+      code: "static int add(int a, int b) {\n    return a + b;\n}\n\nadd(1, add(2, 2))",
+      options: ["5", "4", "It doesn't compile"],
+      errs: [
+        null,
+        "The inside call runs first: add(2, 2) gives back 4. Then add(1, 4) gives back 5.",
+        "It compiles! A call's answer can be passed into another call. add(2, 2) is 4, then add(1, 4) is 5.",
+      ],
+    },
+    {
+      prompt: "What does this give back?",
+      code: "static int zap(int power) {\n    return power * 2;\n}\n\nzap(zap(1))",
+      options: ["4", "2", "It doesn't compile"],
+      errs: [
+        null,
+        "Run the inside call first: zap(1) is 2. Then zap(2) is 4.",
+        "It compiles! zap(1) gives back 2, and that 2 goes into the outer zap: zap(2) is 4.",
+      ],
+    },
+  ],
+});
 
 // ---------------------------------------------------------------------
 //  COZY COTTAGE — just for fun: no quests, no questions.
@@ -1380,7 +1662,7 @@ const cottage = {
 };
 
 // =====================================================================
-export const MAPS = { village, plains, spire, castle, boss, echo, cottage };
+export const MAPS = { village, plains, spire, castle, boss, echo, cottage, twins, scribe, boxes, calc };
 
 // The objective shown at the top of the screen, worked out from flags.
 export function objective(s) {

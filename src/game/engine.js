@@ -303,7 +303,10 @@ export class Game {
     this.held = [];
     this.run(async () => {
       this.log(`// battle: ${enemy.name}`, "out");
+      const map = this.map;
+      if (map.battleMusic) this.ui.music(map.battleMusic);
       const result = await this.ui.battle({ enemy, first: firstStrike, theme: this.map.theme });
+      if (map.battleMusic && this.map === map) this.ui.music(map.music || null);
       if (result === "win") {
         e.dead = true;
         if (e.persist) this.s.flags["dead:" + e.id] = true;
@@ -1048,7 +1051,7 @@ export class Game {
     const c = this.ctx;
     const label = e.tag(this.s);
     const cx = e.x * TILE + TILE / 2;
-    const cy = e.y * TILE - 6;
+    const cy = Math.max(10, e.y * TILE - 6); // keep labels on things in the top row visible
     c.font = 'bold 11px "Courier New", monospace';
     const w = c.measureText(label).width + 10;
     c.fillStyle = "rgba(20,16,31,.85)";

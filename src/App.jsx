@@ -8,7 +8,7 @@ import BattleScreen from "./BattleScreen.jsx";
 import TitleScreen from "./TitleScreen.jsx";
 import TouchPad from "./TouchPad.jsx";
 import { forDevice } from "./game/controls.js";
-import { setTrack, isMuted, setMuted } from "./game/music.js";
+import { setTrack, isMuted, setMuted, getVolume, setVolume } from "./game/music.js";
 
 // localStorage key — your progress is saved in the browser under this name.
 const SAVE_KEY = "rune-of-logic-rpg-v2";
@@ -45,6 +45,7 @@ export default function App() {
   const [victory, setVictory] = useState(false);
   const [battle, setBattle] = useState(null);
   const [musicMuted, setMusicMuted] = useState(isMuted);
+  const [musicVolume, setMusicVolume] = useState(getVolume);
   const hasSave = useRef(loadSave() !== null);
 
   blockingRef.current = journal || victory;
@@ -111,6 +112,16 @@ export default function App() {
     setMusicMuted(!musicMuted);
   }
 
+  function changeVolume(v) {
+    setVolume(v);
+    setMusicVolume(v);
+    // Moving the slider up means "I want to hear it", so it also unmutes.
+    if (musicMuted && v > 0) {
+      setMuted(false);
+      setMusicMuted(false);
+    }
+  }
+
   function resetGame() {
     if (window.confirm("Erase your save and start over?")) {
       localStorage.removeItem(SAVE_KEY);
@@ -126,15 +137,32 @@ export default function App() {
         <div className="title">⚔️ Rune of Logic</div>
         {s && <Hud s={s} />}
         <div className="header-btns">
-          <button
-            className="link-btn"
-            aria-label={musicMuted ? "Turn music on" : "Turn music off"}
-            title={musicMuted ? "Music off" : "Music on"}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={toggleMusic}
-          >
-            {musicMuted ? "🔇" : "🔊"}
-          </button>
+          <div className="volume">
+            <button
+              className="link-btn"
+              aria-label={musicMuted ? "Turn music on" : "Turn music off"}
+              title={musicMuted ? "Music off" : "Music on"}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={toggleMusic}
+            >
+              {musicMuted || musicVolume === 0 ? "🔇" : musicVolume < 0.5 ? "🔉" : "🔊"}
+            </button>
+            <input
+              type="range"
+              className="volume-slider"
+              min="0"
+              max="100"
+              step="5"
+              value={musicMuted ? 0 : Math.round(musicVolume * 100)}
+              aria-label="Music volume"
+              title={`Volume ${musicMuted ? 0 : Math.round(musicVolume * 100)}%`}
+              onChange={(e) => changeVolume(e.target.value / 100)}
+              // arrow keys adjust the slider instead of walking the hero
+              onKeyDown={(e) => e.stopPropagation()}
+              // after a drag, give the keys back to the game
+              onPointerUp={(e) => e.currentTarget.blur()}
+            />
+          </div>
           {s && <button className="link-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => setJournal(true)}>📜 Journal<span className="only-keys-inline"> (L)</span></button>}
           <button className="link-btn danger" onMouseDown={(e) => e.preventDefault()} onClick={resetGame}>↺ Reset</button>
         </div>
@@ -252,7 +280,7 @@ function DialogBox({ dialog, onAnswer }) {
 
   return (
     <div
-      className={`dialog ${dialog.style === "error" ? "is-error" : ""}`}
+      className={`dialog ${dialog.style === "error" ? "is-error" : ""} ${dialog.type === "choose" ? "is-choice" : ""}`}
       onClick={() => {
         if (!done) setShown(full.length);
         else if (dialog.type === "say") onAnswer(true);

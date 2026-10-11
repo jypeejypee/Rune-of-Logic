@@ -23,9 +23,14 @@
 
 const TRACKS = {
   village: { url: "/music/village.mp3", loopStart: 0.6, loopEnd: 0.6 + 56.73408 + 0.25, crossfade: 0.25, volume: 0.35 },
+  // battle.mp3: 0.8 s of silence, fades out from ~129 s, and its opening
+  // comes back 61.278 s in, so we loop there (longer crossfade: the repeat
+  // is close, not exact). Used for fights on maps with `battleMusic`.
+  battle: { url: "/music/battle.mp3", loopStart: 0.8, loopEnd: 0.8 + 61.2778 + 0.5, crossfade: 0.5, volume: 0.35 },
 };
 
 const MUTE_KEY = "rune-of-logic-music-muted";
+const VOLUME_KEY = "rune-of-logic-music-volume";
 const FADE = 0.8; // seconds to fade between maps
 
 let ctx = null;
@@ -43,6 +48,32 @@ function readMuted() {
 }
 let muted = readMuted();
 
+function readVolume() {
+  try {
+    const v = parseFloat(localStorage.getItem(VOLUME_KEY));
+    if (v >= 0 && v <= 1) return v;
+  } catch (e) {
+    /* storage blocked: use the default */
+  }
+  return 0.8;
+}
+let volume = readVolume(); // 0..1, the player's volume slider
+
+// What the master gain should be. Squared so the slider feels even:
+// ears hear loudness on a log scale, so a linear gain bunches all the
+// change into the bottom of the slider.
+function level() {
+  return muted ? 0 : volume * volume;
+}
+
+function rampMaster() {
+  if (!master) return;
+  const now = ctx.currentTime;
+  master.gain.cancelScheduledValues(now);
+  master.gain.setValueAtTime(master.gain.value, now);
+  master.gain.linearRampToValueAtTime(level(), now + 0.1);
+}
+
 // Browsers only allow sound after the player taps or presses a key,
 // so the audio system is created on the first one.
 function ensureContext() {
@@ -51,7 +82,7 @@ function ensureContext() {
   if (!AC) return null;
   ctx = new AC();
   master = ctx.createGain();
-  master.gain.value = muted ? 0 : 1;
+  master.gain.value = level();
   master.connect(ctx.destination);
   // Pause the music while the tab/app is in the background (saves battery on phones).
   document.addEventListener("visibilitychange", () => {
@@ -185,10 +216,19 @@ export function setMuted(m) {
   } catch (e) {
     /* storage blocked: the choice just won't be remembered */
   }
-  if (master) {
-    const now = ctx.currentTime;
-    master.gain.cancelScheduledValues(now);
-    master.gain.setValueAtTime(master.gain.value, now);
-    master.gain.linearRampToValueAtTime(m ? 0 : 1, now + 0.25);
+  rampMaster();
+}
+
+export function getVolume() {
+  return volume;
+}
+
+export function setVolume(v) {
+  volume = Math.min(1, Math.max(0, v));
+  try {
+    localStorage.setItem(VOLUME_KEY, String(volume));
+  } catch (e) {
+    /* storage blocked: the choice just won't be remembered */
   }
+  rampMaster();
 }
