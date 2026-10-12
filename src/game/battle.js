@@ -10,11 +10,11 @@ import { EXAM } from "./exam.js";
 export const ENEMIES = {
   bug:    { name: "Bridge Bug",    emoji: "🐛", hp: 8,  atk: 3, exp: 8,  gold: 3, topic: "methods" },
   knight: { name: "Null Knight",   emoji: "🛡️", hp: 9,  atk: 3, exp: 9,  gold: 4, topic: "methods",
-            image: "/sprites/knight.png", imgHeight: 235, sprite: "knight" },
+            image: import.meta.env.BASE_URL + "sprites/knight.png", imgHeight: 235, sprite: "knight" },
   beetle: { name: "Syntax Beetle", emoji: "🐞", hp: 10, atk: 3, exp: 10, gold: 3, topic: "params" },
   // `image` = a picture shown in battle (files in /public). `sprite` = how it's drawn on the map.
   cobra:  { name: "Wilds Cobra",   emoji: "🐍", hp: 15, atk: 5, exp: 14, gold: 5, topic: "encap",
-            image: "/sprites/cobra.png", sprite: "cobra", music: "snake" },
+            image: import.meta.env.BASE_URL + "sprites/cobra.png", sprite: "cobra", music: "snake" },
   ghost:  { name: "Null Ghost",    emoji: "👻", hp: 14, atk: 4, exp: 14, gold: 5, topic: "static" },
   slime:  { name: "Leak Slime",    emoji: "🦠", hp: 16, atk: 5, exp: 16, gold: 6, topic: "encap" },
   minion: { name: "Leaky Minion",  emoji: "🪲", hp: 14, atk: 5, exp: 14, gold: 5, topic: "all" },

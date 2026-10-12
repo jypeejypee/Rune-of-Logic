@@ -22,18 +22,18 @@
 // =====================================================================
 
 const TRACKS = {
-  village: { url: "/music/village.mp3", loopStart: 0.6, loopEnd: 0.6 + 56.73408 + 0.25, crossfade: 0.25, volume: 0.35 },
+  village: { url: import.meta.env.BASE_URL + "music/village.mp3", loopStart: 0.6, loopEnd: 0.6 + 56.73408 + 0.25, crossfade: 0.25, volume: 0.35 },
   // battle.mp3: 0.8 s of silence, fades out from ~129 s, and its opening
   // comes back 61.278 s in, so we loop there (longer crossfade: the repeat
   // is close, not exact). Used for fights on maps with `battleMusic`.
-  battle: { url: "/music/battle.mp3", loopStart: 0.8, loopEnd: 0.8 + 61.2778 + 0.5, crossfade: 0.5, volume: 0.35 },
+  battle: { url: import.meta.env.BASE_URL + "music/battle.mp3", loopStart: 0.8, loopEnd: 0.8 + 61.2778 + 0.5, crossfade: 0.5, volume: 0.35 },
   // These three are whole songs with an ending, followed by a long stretch
   // of silence in the file. The loop plays the song through to where the
   // sound stops, then starts it again. Volumes are matched to village.mp3
   // (these files are quieter, the snake song is louder).
-  main: { url: "/music/main.mp3", loopStart: 0.58, loopEnd: 109.6, crossfade: 0.4, volume: 0.75 }, // title screen
-  forest: { url: "/music/forest.mp3", loopStart: 0.78, loopEnd: 83.65, crossfade: 0.4, volume: 0.85 }, // the Private Wilds
-  snake: { url: "/music/snake.mp3", loopStart: 0.84, loopEnd: 42.8, crossfade: 0.3, volume: 0.45 }, // cobra battles
+  main: { url: import.meta.env.BASE_URL + "music/main.mp3", loopStart: 0.58, loopEnd: 109.6, crossfade: 0.4, volume: 0.75 }, // title screen
+  forest: { url: import.meta.env.BASE_URL + "music/forest.mp3", loopStart: 0.78, loopEnd: 83.65, crossfade: 0.4, volume: 0.85 }, // the Private Wilds
+  snake: { url: import.meta.env.BASE_URL + "music/snake.mp3", loopStart: 0.84, loopEnd: 42.8, crossfade: 0.3, volume: 0.45 }, // cobra battles
 };
 
 const MUTE_KEY = "rune-of-logic-music-muted";
