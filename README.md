@@ -2,7 +2,7 @@
 
 *Chapter 1: The Encapsulated Kingdom*
 
-**▶ Play it online: https://jypeejypee.github.io/Rune-of-Logic/** (no install needed; works on desktop and mobile)
+**▶ Play it online: https://rune-of-logic.vercel.app/** (no install needed; works on desktop and mobile)
 
 A small top-down RPG where **Java is magic**. You walk around as Rook, an
 apprentice coder, and every quest *is* a Java idea:
